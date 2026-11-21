@@ -424,6 +424,7 @@
       </div>
       <a href="/ss?portal=1" style="background: #000; color: #facc15; padding: 5px 14px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">&larr; Exit to Super Admin HQ</a>
     </div>
+  </div>
   
   <header class="top-bar">
     <div class="brand-section" style="display:flex; align-items:center; gap:12px;">
@@ -1618,11 +1619,11 @@ function updateMetrics(employees) {
   const sentToday = employees.reduce((acc, e) => acc + (parseInt(e.messages_sent_today) || 0), 0);
   const totalCommission = tls.reduce((acc, t) => acc + (parseInt(t.tl_commission_balance) || (tms.filter(m => m.joined_via_tl === t.id).length * 500)), 0);
 
-  document.getElementById('metricTotalEmployees').textContent = employees.length;
-  document.getElementById('metricTLCount').textContent = tls.length;
-  document.getElementById('metricTMCount').textContent = tms.length;
-  document.getElementById('metricMessagesToday').textContent = sentToday;
-  document.getElementById('metricTLCommissions').textContent = 'Rs. ' + totalCommission.toLocaleString();
+  const mTot = document.getElementById('metricTotalEmployees'); if (mTot) mTot.textContent = employees.length;
+  const mTL = document.getElementById('metricTLCount'); if (mTL) mTL.textContent = tls.length;
+  const mTM = document.getElementById('metricTMCount'); if (mTM) mTM.textContent = tms.length;
+  const mMsg = document.getElementById('metricMessagesToday'); if (mMsg) mMsg.textContent = sentToday;
+  const mComm = document.getElementById('metricTLCommissions'); if (mComm) mComm.textContent = 'Rs. ' + totalCommission.toLocaleString();
 }
 
 function renderEmployeeTable(employees) {
@@ -3124,16 +3125,7 @@ async function checkCcAuth() {
 
 window.addEventListener('DOMContentLoaded', checkCcAuth);
 
-loadEmployees();
-loadPendingTMs();
-loadPendingDeals();
-loadCompanyLeads();
-loadCompanyConfig();
-loadCompanyWithdrawals();
-loadCampaignSenders();
-pollCampaignStatus();
-setInterval(loadPendingTMs, 8000);
-setInterval(loadCompanyWithdrawals, 8000);
+// Intervals and loaders are safely managed inside bootCompanyAdminDashboard()
 
 
 function toggleTheme() {
