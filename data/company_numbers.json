@@ -1,0 +1,28 @@
+[
+  {
+    "id": "NUM-001",
+    "phone": "923318036576",
+    "display": "+92 331 8036576",
+    "label": "Primary Company Sales Trunk",
+    "company_id": "COMP-001",
+    "assigned_to_user_id": null,
+    "assigned_to_user_name": null,
+    "daily_capacity": 500,
+    "messages_sent_today": 0,
+    "status": "available",
+    "created_at": "2026-11-18 17:00:00"
+  },
+  {
+    "id": "NUM-002",
+    "phone": "923001234567",
+    "display": "+92 300 1234567",
+    "label": "Secondary Fallback Trunk Pool #2",
+    "company_id": "COMP-001",
+    "assigned_to_user_id": null,
+    "assigned_to_user_name": null,
+    "daily_capacity": 300,
+    "messages_sent_today": 0,
+    "status": "available",
+    "created_at": "2026-11-18 17:00:00"
+  }
+]

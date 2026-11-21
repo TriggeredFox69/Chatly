@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# WhatsApp Baileys Multi-File Auth Sessions (Contains sensitive encryption keys & auth tokens)
+sessions/
+baileys_auth/
+*.session
+
+# SQLite binary database files & WAL
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+
+# Uploaded campaign media
+data/uploads/*
+!data/uploads/.gitkeep
+
+# Logs & temp files
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.env
+.env.local

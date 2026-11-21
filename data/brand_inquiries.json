@@ -1,0 +1,28 @@
+[
+  {
+    "id": "INQ-179526001",
+    "brand_name": "Glamour Beauty Cosmetics",
+    "contact_name": "Sarah Khan",
+    "phone": "03001234567",
+    "email": "sarah@glamourbeauty.pk",
+    "category": "E-Commerce / Cosmetics",
+    "website": "https://glamourbeauty.pk",
+    "monthly_budget": "PKR 75,000 - 150,000",
+    "notes": "Looking for 5 dedicated closers for our new winter skincare line rollout. Ready to start immediately.",
+    "status": "new",
+    "created_at": "2026-11-21 14:15:00"
+  },
+  {
+    "id": "INQ-179526002",
+    "brand_name": "Apex Scalper Academy",
+    "contact_name": "Hamza Tariq",
+    "phone": "03129876543",
+    "email": "hamza@apexscalper.com",
+    "category": "Digital Education & Signals",
+    "website": "https://apexscalper.com",
+    "monthly_budget": "PKR 150,000 - 300,000",
+    "notes": "Crypto and Forex coaching desk. We receive 500+ inquiries daily and need high-ticket closers.",
+    "status": "contacted",
+    "created_at": "2026-11-21 11:30:00"
+  }
+]

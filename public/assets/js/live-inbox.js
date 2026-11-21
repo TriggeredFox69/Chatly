@@ -1,0 +1,199 @@
+(() => {
+  window.NunnoLiveInbox = function ({ state, getLead, renderList, renderChat, toast, stopAudio }) {
+    let cursor = 0, busy = false, epoch = '', activePhone = '', sendingMedia = false, lastPresenceAt = 0, hydrated = false;
+    const mediaRequests = new Map();
+    async function api(action, data = {}) {
+      const response = await fetch('api/direct_sender.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }), signal: AbortSignal.timeout(action === 'send_direct' ? 90000 : action === 'get_media' ? 35000 : 15000) });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.message || 'WhatsApp request failed.');
+      return result;
+    }
+    const cleanDigits = p => {
+      let c = String(p || '').replace(/\D/g, '');
+      if (c.startsWith('0092')) c = c.slice(2);
+      else if (c.startsWith('03') && c.length === 11) c = '92' + c.slice(1);
+      else if (c.startsWith('3') && c.length === 10) c = '92' + c;
+      return c;
+    };
+    function isTMUser() {
+      const userRole = (state.currentUser?.role || '').toLowerCase();
+      const designation = (state.currentUser?.designation || '').toLowerCase();
+      return userRole === 'member' || userRole === 'closer' || designation.includes('closer');
+    }
+
+    function isTLUser() {
+      const userRole = (state.currentUser?.role || '').toLowerCase();
+      const designation = (state.currentUser?.designation || '').toLowerCase();
+      return userRole === 'lead' || userRole === 'tl' || designation.includes('lead') || designation.includes('team lead');
+    }
+
+    function shouldFilterNonCampaignMessages() {
+      // If the active user is a Team Leader (TL), NEVER filter out any conversations!
+      // TLs cold outreach on social platforms and WhatsApp, so all external inbound and outbound messages must sync directly into their Chatly portal!
+      if (isTLUser()) return false;
+
+      // Regular TMs only get company campaign-oriented messages.
+      // If someone else messages the TM's linked WhatsApp number from outside, ignore it.
+      if (isTMUser()) return true;
+
+      return false;
+    }
+
+    function merge(item) {
+      const itemPhone = cleanDigits(item.phone);
+      let lead = state.leads.find(l => cleanDigits(l.phone) === itemPhone);
+      if (!lead) {
+        const isTM = isTMUser();
+        const isTL = isTLUser();
+        const ownerId = (isTL || isTM) ? (state.currentUser?.id || null) : null;
+        const ownerName = (isTL || isTM) ? (state.currentUser?.name || null) : null;
+        const ownerUsername = (isTL || isTM) ? (state.currentUser?.username || null) : null;
+        const leadState = (isTL || isTM) ? 'ongoing' : 'fresh';
+
+        const defaultNumber = itemPhone ? ('+' + itemPhone) : (item.phone ? '+' + cleanDigits(item.phone) : '');
+        lead = {
+          id: 'wa_lead_' + (itemPhone || item.phone),
+          phone: itemPhone || item.phone,
+          display: defaultNumber,
+          name: item.name || defaultNumber,
+          city: '',
+          network: '',
+          ownerId: ownerId,
+          ownerName: ownerName,
+          ownerUsername: ownerUsername,
+          leadState: leadState,
+          status: 'unread',
+          unreadCount: 0,
+          interest: isTL ? 'TL Cold Outreach' : (isTM ? 'TM Closer Chat' : ''),
+          notes: 'Conversation synced from connected WhatsApp',
+          messages: []
+        };
+        state.leads.unshift(lead);
+      }
+      if (!lead) return null;
+      const previous = lead.messages.find(m => m.waMessageId === item.waMessageId);
+      // Contact names are user-managed only; do not auto-override with WhatsApp push names
+      const fields = { ...item, time: new Date(item.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        duration: item.durationSeconds ? `${Math.floor(item.durationSeconds / 60)}:${String(item.durationSeconds % 60).padStart(2,'0')}` : undefined };
+      if (previous) Object.assign(previous, fields, { id: previous.id, agentName: previous.agentName || item.agentName });
+      else {
+        lead.messages.push(fields);
+        if (hydrated && item.sender === 'lead' && (state.activeLeadId !== lead.id || state.currentTab !== 'inbox' || document.hidden)) {
+          lead.unreadCount = (lead.unreadCount || 0) + 1; lead.status = 'unread';
+        }
+      }
+      lead.messages.sort((a,b) => (a.timestamp || 0)-(b.timestamp || 0));
+      lead.lastMessageAt = Math.max(lead.lastMessageAt || 0, item.timestamp);
+      // Message time is not last-seen presence.
+      if (!state.activeLeadId) state.activeLeadId = lead.id;
+      if (typeof window.NUNNO_SYNC_LEAD === 'function') {
+        window.NUNNO_SYNC_LEAD(lead, { newMessage: fields });
+      }
+      return lead;
+    }
+    async function loadMedia(message) {
+      if (message.audioUrl || message.imageUrl || message.videoUrl || message.docUrl || !message.waMessageId) return;
+      if (!mediaRequests.has(message.waMessageId)) {
+        mediaRequests.set(message.waMessageId, api('get_media', { message_id: message.waMessageId }).then(result => {
+          if (!/^data:(image|audio|video|application|text)\/[a-z0-9.+-]+(;[^,]*)?;base64,/i.test(result.data_url)) throw new Error('Unsupported attachment.');
+          if (message.type === 'audio') message.audioUrl = result.data_url;
+          else if (message.type === 'image') message.imageUrl = result.data_url;
+          else if (message.type === 'video') message.videoUrl = result.data_url;
+          else message.docUrl = result.data_url;
+          if (result.filename) message.filename = result.filename;
+          message.mediaError = '';
+        }).catch(error => { message.mediaError = error.message; throw error; }).finally(() => mediaRequests.delete(message.waMessageId)));
+      }
+      return mediaRequests.get(message.waMessageId);
+    }
+    async function poll() {
+      if (busy || !state.currentUser || window.NUNNO_OFFLINE_PREVIEW) return;
+      busy = true;
+      try {
+        const result = await api('get_events', { after: cursor });
+        if (epoch && epoch !== result.epoch) { cursor = 0; epoch = result.epoch; hydrated = false; return; }
+        epoch = result.epoch;
+        let activeChanged = false;
+        let mergedAny = false;
+        for (const item of result.messages || []) {
+          const lead = merge(item);
+          if (lead) {
+            mergedAny = true;
+            if (lead.id === state.activeLeadId) activeChanged = true;
+          }
+        }
+        cursor = result.cursor;
+        hydrated = true;
+        if (result.presences && typeof window.onWhatsAppPresencesUpdate === 'function') {
+          window.onWhatsAppPresencesUpdate(result.presences);
+        }
+        if (mergedAny) { renderList(); if (activeChanged) renderChat(); }
+        if (!state.senderConfigured) {
+          activePhone = '';
+          const el = document.getElementById('chatPresence');
+          if (el) { el.textContent = ''; el.style.display = 'none'; }
+          return;
+        }
+        const lead = getLead(state.activeLeadId);
+        if (lead && state.currentTab === 'inbox') {
+          if (activePhone !== lead.phone) {
+            activePhone = lead.phone;
+            lastPresenceAt = 0;
+          }
+          // Poll presence for active chat at a responsive cadence (every 5s)
+          if (Date.now() - lastPresenceAt > 5000) {
+            lastPresenceAt = Date.now();
+            api('get_presence', { phone: lead.phone }).then(presence => {
+              if (typeof window.onContactPresenceUpdate === 'function') {
+                window.onContactPresenceUpdate(lead.phone, presence);
+              } else {
+                const presenceEl = document.getElementById('chatPresence');
+                if (getLead(state.activeLeadId)?.phone === lead.phone && presenceEl) {
+                  presenceEl.textContent = presence.label;
+                  presenceEl.className = 'chat-presence presence-' + presence.state;
+                }
+              }
+            }).catch(() => {});
+          }
+          const unhandled = lead.messages.find(m => (m.type === 'image' || m.type === 'video' || m.type === 'document' || m.type === 'audio') && m.hasMedia && !m.imageUrl && !m.videoUrl && !m.docUrl && !m.audioUrl && !m.mediaError);
+          if (unhandled && !mediaRequests.has(unhandled.waMessageId)) loadMedia(unhandled).catch(() => {}).finally(() => { if (state.activeLeadId === lead.id) renderChat(); });
+        }
+      } catch (_) {
+        const el = document.getElementById('chatPresence');
+        if (el) { el.textContent = 'Connection unavailable'; el.className = 'chat-presence'; }
+      } finally { busy = false; }
+    }
+    async function sendMedia(dataUrl, { voice = false, duration = 0, filename = 'attachment', caption = '', leadId } = {}) {
+      const lead = getLead(leadId || state.activeLeadId);
+      if (!lead) return toast('Select a conversation first.');
+      const user = state.currentUser;
+      const isOwner = !lead.ownerId || lead.ownerId === user?.id || (user?.username && (lead.ownerUsername || '').toLowerCase() === (user.username || '').toLowerCase());
+      if (!isOwner && user?.role !== 'admin' && user?.role !== 'superadmin') return toast('This conversation is assigned to another agent.');
+      if (sendingMedia) return toast('An attachment is already being sent.');
+      const match = /^data:([^,]+);base64,(.+)$/s.exec(dataUrl || '');
+      if (!match || match[2].length > 14*1024*1024) return toast('Choose an attachment up to 10 MB.');
+      const mime = match[1].toLowerCase();
+      const type = mime.startsWith('audio/') ? 'audio' : (mime.startsWith('image/') ? 'image' : (mime.startsWith('video/') ? 'video' : 'document'));
+      const message = { id: 'media_' + crypto.randomUUID(), sender: 'agent', agentName: user?.name || 'Agent',
+        type, text: caption || (type === 'audio' ? 'Voice note' : (type === 'image' ? 'Image' : (type === 'video' ? 'Video' : filename || 'Document'))), deliveryStatus: 'sending',
+        timestamp: Math.floor(Date.now()/1000), time: new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }),
+        durationSeconds: duration, [type === 'audio' ? 'audioUrl' : (type === 'image' ? 'imageUrl' : (type === 'video' ? 'videoUrl' : 'docUrl'))]: dataUrl, filename };
+      lead.messages.push(message); sendingMedia = true; renderList(); renderChat();
+      try {
+        const result = await api('send_direct', { phone: lead.phone, message: caption || '', request_id: message.id,
+          media: { mimetype: match[1], data: match[2], filename, voice } });
+        const observed = lead.messages.find(m => m !== message && m.waMessageId === result.message_id);
+        message.waMessageId = result.message_id; message.deliveryStatus = observed?.deliveryStatus || 'accepted';
+        // Incoming event polling may have already seen the same outgoing message.
+        lead.messages = lead.messages.filter(m => m === message || m.waMessageId !== result.message_id);
+        toast('Attachment submitted to WhatsApp; waiting for delivery receipt.');
+      } catch (error) {
+        message.deliveryStatus = /unconfirmed|unknown|did not respond/i.test(error.message) ? 'unknown' : 'failed';
+        message.deliveryError = error.message; toast(error.message);
+      } finally { sendingMedia = false; renderList(); if (state.activeLeadId === lead.id) renderChat(); }
+    }
+    // Poll every 2 seconds for instant real-time live WhatsApp sync
+    setInterval(poll, 2000);
+    return { poll, loadMedia, sendMedia };
+  };
+})();

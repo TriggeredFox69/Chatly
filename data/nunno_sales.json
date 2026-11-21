@@ -1,0 +1,52 @@
+{
+  "updated_at": "2026-11-19 16:45:00",
+  "sales_by_tm": {
+    "EMP-101": {
+      "user_id": "EMP-101",
+      "plans_sold": 7,
+      "updated_at": "2026-11-19T12:02:21.156Z"
+    },
+    "EMP-TM-MWMCIO09": {
+      "user_id": "EMP-TM-MWMCIO09",
+      "username": "bilal_closer",
+      "name": "Bilal Khan",
+      "plans_sold": 6
+    }
+  },
+  "log": [
+    {
+      "id": "NSALE-101",
+      "tm_id": "EMP-101",
+      "tm_name": "Hamza Khan",
+      "plans": 6,
+      "amount": 10200,
+      "type": "base_task",
+      "created_at": "2026-11-19 12:00:00"
+    },
+    {
+      "id": "NSALE-102",
+      "tm_id": "EMP-101",
+      "tm_name": "Hamza Khan",
+      "plans": 1,
+      "amount": 1700,
+      "type": "surplus",
+      "created_at": "2026-11-19 14:30:00"
+    },
+    {
+      "id": "NSALE-103",
+      "tm_id": "EMP-TM-MWMCIO09",
+      "tm_name": "Bilal Khan",
+      "plans": 6,
+      "amount": 10200,
+      "type": "base_task",
+      "created_at": "2026-11-19 15:10:00"
+    },
+    {
+      "id": "NSALE-1795089724788",
+      "tm_id": "EMP-101",
+      "plans": 1,
+      "amount": 1700,
+      "created_at": "2026-11-19T12:02:04.788Z"
+    }
+  ]
+}

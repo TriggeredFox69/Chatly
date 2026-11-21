@@ -1,0 +1,2535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <script>
+    if (location.protocol === 'file:' && new URLSearchParams(location.search).get('offline') !== '1') {
+      location.replace(new URL('open-omnidesk.html', location.href).href);
+    }
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Chatly — WhatsApp Closing Platform &amp; Infrastructure</title>
+  <meta name="description" content="Chatly brings your WhatsApp closing conversations, campaigns, and multi-tenant sales operations into one focused workspace.">
+  <link rel="icon" type="image/png" href="assets/images/chatly-icon.png">
+  <meta name="theme-color" content="#050b09">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/whatsapp.css?v=14.0">
+  <link rel="stylesheet" href="assets/css/omnidesk.css?v=14.0">
+  <script>
+    (function() {
+      try {
+        const u = window.NUNNO_ACTIVE_USER || JSON.parse(localStorage.getItem('omnidesk_user') || '{}');
+        const search = new URLSearchParams(window.location.search);
+        const hasChat = search.get('chat') || localStorage.getItem('omnidesk_active_chat_phone');
+        const tab = search.get('tab');
+        const role = u?.role || '';
+        if (role && role !== 'admin' && role !== 'superadmin' && !hasChat && tab !== 'inbox') {
+          document.documentElement.classList.add('preload-agent-view');
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <style>
+    html.preload-agent-view:not(.tabs-active) #viewInbox { display: none !important; }
+    html.preload-agent-view:not(.tabs-active) #viewEmployee { display: block !important; }
+    html.tabs-active #viewInbox { display: flex; }
+  </style>
+  <script>
+    window.NUNNO_TEMPLATES = {
+      pro_liquidation_urdu: {
+        id: "pro_liquidation_urdu",
+        name: "Crypto Liquidation Alert (Roman Urdu)",
+        category: "High Intent Crypto",
+        lang: "Roman Urdu",
+        body: "{Salam|AoA|Hello} {name|Bhai|Trader}!\n\nKya aap bar bar market ke sudden wick ya stop-loss hunt se liquid ho rahe hain? 📉❌\n\n*Nunno AI Cloud* (`nunno.cloud`) ne Pakistan ke top traders ke liye *Liquidation Magnet System* launch kiya hai jo exact level pehle dikhata hai jahan whales retail ko target kar rahi hain.\n\n🔥 *Special Community Offer:*\n• Nunno Pro sirf *Rs. 5,000/month*\n• EasyPaisa, JazzCash aur USDT accepted\n• Coupon `NUNNO30` se *30% OFF*\n\nLive Demo aur Signals dekhne ke liye visit karein: https://nunno.cloud\n\n_Reply STOP agar aap mazeed updates nahi chahte._"
+      }
+    };
+    window.NUNNO_CONFIG = {
+      connected_whatsapp_number: '',
+      sender_engine: {
+        mode: 'whatsapp_cloud_api',
+        delivery_delay_min: 4,
+        delivery_delay_max: 8
+      }
+    };
+  </script>
+</head>
+<body>
+  <script>
+    try { if (localStorage.getItem('nunno_theme') === 'dark') document.body.classList.add('theme-dark'); } catch (_) {}
+  </script>
+
+  <!-- CHATLY LAUNCH LOADER OVERLAY -->
+  <div id="loginAnimOverlay" class="login-anim-overlay" aria-hidden="true" role="status" aria-live="polite">
+    <div class="anim-aura"></div>
+    <div class="anim-scene">
+      <div class="anim-logo-box">
+        <svg class="anim-ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="anim-ring-track" cx="60" cy="60" r="54"/><circle class="anim-ring-arc" cx="60" cy="60" r="54"/></svg>
+        <img src="assets/images/chatly-icon.png" alt="Chatly" class="anim-logo-img">
+      </div>
+      <div class="anim-label">
+        <div class="anim-brand-text">
+          <span>Chatly</span>
+          <span class="anim-role-tag" id="animRoleTag">Closer Portal</span>
+        </div>
+        <div class="anim-subtext" id="animSubtext">Opening closer workspace…</div>
+        <div class="anim-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Impersonation Mode Banner (Admin Direct Login Active) -->
+  <div id="adminImpersonationBanner" style="display:none; background:linear-gradient(90deg, #059669, #0d9488); color:#ffffff; padding:8px 20px; font-size:12.5px; font-weight:700; z-index:999999; box-shadow:0 2px 10px rgba(0,0,0,0.25); align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:16px;">⚡</span>
+      <span><strong>Admin Direct Login Active:</strong> You are currently operating inside closer workspace <u id="impersonatedUserName">Closer</u> (<code id="impersonatedUserHandle" style="background:rgba(0,0,0,0.2); padding:2px 6px; border-radius:4px; font-family:monospace;">@closer</code>).</span>
+    </div>
+    <button type="button" onclick="window.OmnideskReturnToAdmin()" style="background:#ffffff; color:#065f46; font-weight:800; font-size:11.5px; border:none; padding:4px 14px; border-radius:6px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.15);">
+      ↩ Return to Company Admin Portal
+    </button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       TOP NAVIGATION BAR
+  ════════════════════════════════════════════════════════ -->
+  <header class="topbar">
+    <a href="index.php" id="chatlyTopLogoLink" class="brand-wrap" style="display:flex; align-items:center; gap:12px; text-decoration:none; cursor:pointer;" title="Chatly Sales Closing Desk">
+      <img id="mainBrandLogoImg" src="assets/images/chatly-logo-light.png" alt="Chatly" class="brand-logo-img chatly-logo--light">
+      <img src="assets/images/chatly-logo.png" alt="Chatly" class="brand-logo-img chatly-logo--dark">
+      <img src="assets/images/chatly-icon.png" alt="Chatly" class="brand-icon-only">
+    </a>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="nav-tab-bar">
+      <button class="nav-tab-btn active tab-wa" id="tabInbox">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <span>Team Inbox</span>
+        <span class="unread-badge" id="unreadGlobalBadge">3</span>
+      </button>
+
+      <button class="nav-tab-btn" id="tabCampaign">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span>Campaigns</span>
+      </button>
+
+      <button class="nav-tab-btn employee-home-tab" id="tabEmployee">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+        <span id="tabEmployeeLabel">📊 My Stats</span>
+      </button>
+    </nav>
+
+    <!-- Top Right Actions -->
+    <div class="topbar-actions" style="display:flex;align-items:center;gap:6px;">
+      <!-- Connected WhatsApp Direct Number Pill -->
+      <button type="button" class="btn-header-wa-status" id="connectedNumberPill" style="display:none; align-items:center; gap:6px; padding:5px 12px; border-radius:999px; font-size:11.5px; font-weight:750; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.18); color:#fff; cursor:pointer;" title="Team WhatsApp connections">
+        <span class="pulse-circle offline" style="width:8px; height:8px; border-radius:50%; background:#ef4444; display:inline-block;"></span>
+        <span id="connectedNumberText">WhatsApp Disconnected · Click to Link</span>
+      </button>
+
+      <!-- Closer Daily Message Quota Pill -->
+      <div class="header-quota-pill" id="headerQuotaPill" style="display:none; align-items:center; gap:6px; padding:5px 10px; border-radius:8px; font-size:11px; font-weight:700; background:rgba(31, 224, 138, 0.15); border:1px solid rgba(31, 224, 138, 0.3); color:#8ff5c8;" title="Daily Message Limit">
+        <span>⚡</span>
+        <span id="headerQuotaCount">0</span>/<span id="headerQuotaLimit">150</span> msgs
+      </div>
+
+      <!-- Team Lead Portal & Commission Button -->
+      <button class="btn-header-tl" id="openTlModalBtn" style="display:none; align-items:center; gap:6px; padding:6px 12px; border-radius:10px; font-size:12px; font-weight:700; background:linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border:1px solid rgba(16, 185, 129, 0.4); color:#34d399; cursor:pointer;" title="Team Leader Commission & Provisioning">
+        <span>👑</span>
+        <span>Team Lead (Rs. <span id="headerTlCommission">0</span>)</span>
+        <span style="padding:2px 6px; border-radius:4px; background:#10b981; color:#fff; font-size:10px;">➕ Recruit TM</span>
+      </button>
+
+      <!-- Active Tenant / Company Context Indicator -->
+      <div id="companyContextBadge" style="display:none; align-items:center; gap:8px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); border-radius:999px; padding:4px 12px 4px 6px; font-size:12px; font-weight:750; color:#fff;" title="Active Company Tenant">
+        <img id="companyBadgeLogo" src="assets/images/nunno-logo.png" alt="Company Logo" style="width:22px; height:22px; border-radius:50%; object-fit:contain; background:#07140f; border:1px solid rgba(255,255,255,0.2); padding:2px; flex-shrink:0;">
+        <span id="companyContextName">Nunno Official</span>
+        <select id="companyContextSwitcher" style="display:none; background:transparent; border:none; color:inherit; font-size:11px; font-weight:750; cursor:pointer; outline:none; margin-left:2px;"></select>
+      </div>
+
+      <!-- Company Admin Link -->
+      <a href="admin.php" class="btn-header-admin" id="headerAdminLink" style="display:none; text-decoration:none;" title="Company Admin Portal">
+        <span>🏢</span>
+        <span>Company Admin</span>
+      </a>
+
+      <!-- Super Admin Link -->
+      <a href="sadmin.php" class="btn-header-admin" id="headerSadminLink" style="display:none; text-decoration:none; background:rgba(31, 224, 138, 0.2); border-color:rgba(31, 224, 138, 0.5); color:#8ff5c8;" title="Super Admin Command">
+        <span>⚡</span>
+        <span>Super Admin</span>
+      </a>
+
+      <button class="btn-header-perf" id="openScoreBtn" style="display:none;" title="View Performance Stats">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+        <span>Stats</span>
+      </button>
+
+      <button class="btn-header-admin" id="openTeamModalBtn" style="display:none;" title="Admin Portal: Manage Employees">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Employees</span>
+        <span class="badge-role-admin" id="headerEmpCount">2</span>
+      </button>
+
+      <button class="btn-header-admin" id="openVerifyDealsModalBtn" style="display:none; background:rgba(245,158,11,0.18); border-color:rgba(245,158,11,0.45); color:#fbbf24;" title="Verify Marked Paid Deals &amp; Release Closer Commissions">
+        <span>🛡️</span>
+        <span>Verify Deals</span>
+        <span class="badge-role-admin" id="headerPendingDealsBadge" style="display:none; background:#ef4444; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:800; margin-left:4px;">0</span>
+      </button>
+
+      <button class="btn-header-admin" id="openEmailModalBtn" style="display:none;" title="Admin Portal: Email Communications Hub">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span>Email Hub</span>
+      </button>
+
+      <button type="button" class="btn-header-theme" id="themeToggleBtn" title="Switch to dark theme" aria-label="Switch to dark theme" aria-pressed="false">
+        <svg class="theme-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.5 8.5 0 1 0 20.2 15.2Z"/></svg>
+        <span>Dark theme</span>
+      </button>
+
+      <button class="btn-header-logout" id="headerLogoutBtn" title="Logout">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="employee-workspace" id="viewEmployee" style="display:none;">
+    <!-- NUNNO COLLAB SPECIAL PLAN LOCK BANNER (MANDATORY FOR NUNNO TMs) -->
+    <section class="nunno-plan-lock-card" id="nunnoPlanLockCard" style="display:none;">
+      <div class="nunno-lock-ambient"></div>
+      <div class="nunno-lock-header">
+        <div class="nunno-lock-badge">
+          <span>🔒</span>
+          <span>ACTION REQUIRED &bull; NUNNO OFFICIAL COLLAB PLAN</span>
+        </div>
+        <span class="nunno-lock-save-pill">🔥 41% COLLAB DISCOUNT (SAVE PKR 700)</span>
+      </div>
+
+      <div class="nunno-lock-body">
+        <div class="nunno-lock-text-col">
+          <h2 class="nunno-lock-title">Unlock Your Nunno Closer License &amp; Sales Desk</h2>
+          
+          <div class="nunno-philosophy-quote">
+            “In order to work on Chatly and make money, TMs must buy a 1000rs plan on <strong>nunno.cloud/partner/chatly-c7x4k2</strong> because <strong>in order to sell the product, first you should own the product.</strong>”
+          </div>
+
+          <p class="nunno-lock-desc">
+            As a collaborative closer for Nunno Official, you receive an exclusive Rs. 700 partner subsidy. Activate your license to unlock your Team Inbox, live campaigns, and start earning commissions directly to your wallet.
+          </p>
+
+          <div class="nunno-pricing-row">
+            <div class="nunno-price-box">
+              <span class="nunno-price-label">Official Price</span>
+              <span class="nunno-price-original">PKR 1,700</span>
+            </div>
+            <div class="nunno-price-arrow">→</div>
+            <div class="nunno-price-box">
+              <span class="nunno-price-label">Collab Special Plan</span>
+              <strong class="nunno-price-discounted">PKR 1,000</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="nunno-lock-action-col">
+          <!-- Buy Plan Button -->
+          <a href="https://nunno.cloud/partner/chatly-c7x4k2" target="_blank" rel="noopener noreferrer" class="btn-nunno-buy" id="nunnoBuyPlanBtn">
+            <span class="btn-cart-icon">🛒</span>
+            <div>
+              <span style="display:block; font-size:15px; font-weight:800; letter-spacing:0.3px;">Get Nunno Special Plan (Rs. 1,000)</span>
+              <span style="display:block; font-size:11px; opacity:0.85; font-weight:500;">Opens nunno.cloud/partner/chatly-c7x4k2 in new tab &rarr;</span>
+            </div>
+          </a>
+
+          <!-- Payment Proof Submission Box -->
+          <div class="nunno-verification-box" id="nunnoVerificationBox">
+            <div class="verif-header">
+              <strong>⚡ Already Bought the Plan?</strong>
+              <span>Submit your Transaction ID to verify and unlock your desk immediately</span>
+            </div>
+            
+            <div id="nunnoVerifPendingMsg" style="display:none; margin-bottom:10px; font-size:12px; padding:10px 14px; border-radius:10px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.35);">
+              ⏳ <strong>Payment Proof Submitted!</strong> Nunno administration is reviewing your Transaction ID (<code id="submittedTrxSpan" style="color:#fff; font-weight:700;"></code>). Your sales desk will unlock automatically upon verification.
+            </div>
+
+            <form id="nunnoPlanVerifyForm" onsubmit="handleNunnoPlanVerifySubmit(event)">
+              <div class="verif-inputs-grid">
+                <input type="text" id="nunnoTrxInput" class="form-control" placeholder="Transaction ID (e.g. 104829104)" required style="font-family:'JetBrains Mono',monospace; font-size:12px;">
+                <select id="nunnoMethodSelect" class="form-control" style="font-size:12px;">
+                  <option value="easypaisa">EasyPaisa</option>
+                  <option value="jazzcash">JazzCash</option>
+                  <option value="raast">Raast / Bank</option>
+                  <option value="nunnocloud">Nunno.cloud</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-verify-proof" id="nunnoSubmitProofBtn">
+                <span>Submit Proof for Instant Activation</span>
+                <span>⚡</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Executive Bento Hero Profile Card -->
+    <section class="profile-hero-card">
+      <div class="profile-hero-ambient"></div>
+      <div class="profile-hero-main">
+        <div class="profile-avatar-box" id="profileAvatarBox">
+          <span class="profile-avatar-text" id="profileAvatarText">AR</span>
+          <div class="profile-online-ring"></div>
+        </div>
+        <div class="profile-hero-details">
+          <div class="profile-hero-name-row">
+            <h1 id="profileCloserName">Closer Specialist</h1>
+            <span class="profile-pill-role" id="profileCloserRole">✦ Sales Closer</span>
+          </div>
+          <div class="profile-hero-meta-row">
+            <span class="profile-badge id-badge" id="profileCloserId">EMP-TM-01</span>
+            <span class="profile-badge status-pulse-badge" id="profileGenderBadge">
+              <span class="pulse-spark"></span>
+              <span id="profileStatusTag">Live Closer</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Live Company Logo & Info Badge right in TM's Portal -->
+        <div class="profile-company-badge" id="profileCompanyBadge" style="display:flex; align-items:center; gap:10px; padding:7px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); border-radius:12px; margin-left:auto; backdrop-filter:blur(8px);">
+          <img id="profileCompanyLogo" src="assets/images/nunno-logo.png" alt="Company Logo" style="width:34px; height:34px; border-radius:9px; object-fit:contain; background:#07140f; border:1px solid rgba(255,255,255,0.18); padding:2px; box-shadow:0 4px 12px rgba(0,0,0,0.3); flex-shrink:0;">
+          <div style="display:flex; flex-direction:column;">
+            <span style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Representing Company</span>
+            <strong id="profileCompanyName" style="font-size:13px; font-weight:800; color:#fff; white-space:nowrap;">Nunno Official</strong>
+          </div>
+        </div>
+      </div>
+      <div class="profile-hero-actions">
+        <button type="button" class="btn btn-hero-inbox" id="employeeOpenInboxBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span>Open Team Inbox</span>
+          <span class="hero-arrow">→</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- CAMPAIGN WHATSAPP: each TM links their own number; campaigns send this TM's share from it -->
+    <section id="campDeviceCard" style="margin:16px 0; padding:18px 20px; border-radius:16px; background:linear-gradient(135deg, rgba(16,185,129,0.08), rgba(56,189,248,0.05)); border:1px solid rgba(16,185,129,0.28);">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+        <div style="min-width:0; flex:1 1 280px;">
+          <div style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:15px; color:var(--text-primary);">
+            <span>📱</span> My WhatsApp for Campaigns
+            <span id="campDevBadge" style="font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:999px; background:rgba(148,163,184,0.15); color:#94a3b8;">CHECKING…</span>
+          </div>
+          <p id="campDevText" style="margin:6px 0 0; font-size:13px; line-height:1.55; color:var(--text-secondary);">
+            Link your own WhatsApp for campaigns. If it disconnects later, use the button here to scan a fresh QR code.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button type="button" id="campDevConnectBtn" class="btn btn-emerald" style="padding:10px 18px; min-height:42px; font-size:13px; font-weight:800; display:none; white-space:nowrap; color:#fff;">🔗 Connect my WhatsApp</button>
+        </div>
+      </div>
+      <div id="campDevQrBox" style="display:none; margin-top:14px; gap:18px; align-items:center; flex-wrap:wrap;">
+        <img id="campDevQrImg" alt="WhatsApp QR code" style="width:220px; height:220px; border-radius:12px; background:#fff; padding:8px;">
+        <ol style="margin:0; padding-left:18px; font-size:13px; line-height:1.9; color:var(--text-secondary);">
+          <li>Open <strong>WhatsApp</strong> on your phone</li>
+          <li>Tap <strong>⋮ / Settings → Linked devices</strong></li>
+          <li>Tap <strong>Link a device</strong> and scan this code</li>
+          <li>Keep your phone online during campaigns</li>
+        </ol>
+      </div>
+    </section>
+    <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      let timer = null, lastState = '';
+      async function call(action, body) {
+        const r = await fetch('api/direct_sender.php?action=' + action, {
+          method: 'POST', credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.assign({ action }, body || {}))
+        });
+        return r.json().catch(() => ({ success: false }));
+      }
+      function paint(d) {
+        const badge = $('campDevBadge'), text = $('campDevText'), qrBox = $('campDevQrBox');
+        const connect = $('campDevConnectBtn');
+        if (!badge) return;
+        const st = d && d.state || 'disconnected';
+        lastState = st;
+        const darkTheme = document.body.classList.contains('theme-dark');
+        const set = (label, bg, color) => { badge.textContent = label; badge.style.background = bg; badge.style.color = color; };
+        qrBox.style.display = 'none';
+        connect.style.display = 'inline-flex';
+        connect.disabled = false;
+        connect.style.opacity = '1';
+        if (d && d.is_connected) {
+          set('● CONNECTED', 'rgba(16,185,129,0.18)', darkTheme ? '#34d399' : '#067a4a');
+          text.innerHTML = 'Linked to <strong style="color:var(--text-primary);font-family:monospace;">+' + (d.connected_number || '') + '</strong>. Your campaign messages and replies use this WhatsApp.';
+          connect.textContent = '🔄 Reconnect / scan QR';
+        } else if (st === 'qr' && d.qr) {
+          set('SCAN QR', 'rgba(251,191,36,0.18)', darkTheme ? '#fbbf24' : '#92400e');
+          $('campDevQrImg').src = d.qr;
+          qrBox.style.display = 'flex';
+          text.textContent = 'Scan the code with the WhatsApp you want campaigns to send from.';
+          connect.textContent = '🔄 Get a fresh QR';
+        } else if (['starting', 'authenticated'].includes(st)) {
+          set('CONNECTING…', 'rgba(56,189,248,0.18)', darkTheme ? '#38bdf8' : '#0369a1');
+          text.textContent = d.message || 'Starting a secure WhatsApp session…';
+          connect.textContent = 'Restart QR pairing';
+        } else if (st === 'offline') {
+          set('BRIDGE OFFLINE', 'rgba(239,68,68,0.15)', darkTheme ? '#fca5a5' : '#b91c1c');
+          text.textContent = (d && d.message) || 'The WhatsApp service is reconnecting. Retry here in a moment.';
+          connect.textContent = '↻ Retry WhatsApp connection';
+        } else {
+          set('NOT CONNECTED', 'rgba(239,68,68,0.15)', darkTheme ? '#fca5a5' : '#b91c1c');
+          text.textContent = (d && d.message ? d.message + ' ' : '') + 'Connect or reconnect your WhatsApp to join campaigns.';
+          connect.textContent = st === 'error' ? '↻ Try again / scan QR' : '🔗 Connect my WhatsApp';
+        }
+      }
+      async function refresh() {
+        try { paint(await call('campaign_device_status')); }
+        catch (_) { paint({ state: 'offline', message: 'Could not reach the WhatsApp service. Use retry to reconnect.' }); }
+        clearTimeout(timer);
+        const fast = ['qr', 'starting', 'authenticated', 'offline', 'error'].includes(lastState);
+        timer = setTimeout(refresh, fast ? 5000 : 20000);
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!$('campDeviceCard')) return;
+        $('campDevConnectBtn').addEventListener('click', async () => {
+          const button = $('campDevConnectBtn');
+          if (lastState === 'ready' && !confirm('This will unlink the current WhatsApp session and generate a fresh QR. Continue?')) return;
+          button.disabled = true;
+          button.style.opacity = '0.7';
+          button.textContent = 'Starting QR pairing…';
+          try {
+            const result = await call('campaign_device_reset', { relink: true });
+            paint(result);
+            if (!result.success) {
+              lastState = result.state || 'error';
+              $('campDevText').textContent = result.message || 'Could not start QR pairing. Try again.';
+            } else {
+              lastState = 'starting';
+            }
+          } catch (_) {
+            paint({ state: 'offline', message: 'Could not reach the WhatsApp service. Retry in a moment.' });
+          } finally {
+            button.disabled = false;
+            button.style.opacity = '1';
+            refresh();
+          }
+        });
+        refresh();
+      });
+    })();
+    </script>
+
+    <!-- 2. High-End Bento Performance Grid with Micro-Widgets & Animations -->
+    <section class="profile-bento-grid" aria-label="Performance Bento Grid">
+      
+      <!-- HERO BENTO CARD: Total Paid Revenue (Full Width) -->
+      <article class="bento-card bento-card-revenue" id="kpiCardPaid">
+        <div class="bento-ambient-glow"></div>
+        <div class="bento-revenue-left">
+          <div class="bento-badge-row">
+            <span class="bento-tag tag-verified">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="bentoRevenueBadgeText">VERIFIED REVENUE</span>
+            </span>
+            <span class="bento-target-pill" id="bentoTargetPill">Target: PKR 25,000</span>
+          </div>
+          <div class="bento-revenue-amount-wrap">
+            <span class="currency-symbol">PKR</span>
+            <strong class="bento-revenue-value" id="employeeMetricPaidRevenueVal">0</strong>
+            <span id="employeeMetricPaidRevenue" style="display:none;">PKR 0</span>
+          </div>
+          <span class="bento-caption" id="employeeMetricDeals">0 verified client transactions</span>
+        </div>
+        
+        <!-- FOR TM / TL: Monthly Target Pace -->
+        <div class="bento-revenue-right" id="tmMonthlyTargetBox">
+          <div class="bento-track-header">
+            <span>Monthly Target Pace</span>
+            <strong id="revenueQuotaPercent">0%</strong>
+          </div>
+          <div class="bento-track-bar">
+            <div class="bento-track-fill" id="revenueQuotaFill" style="width: 0%;"></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px;">
+            <span class="bento-track-sub">Real-time sync from verified payments</span>
+            <button type="button" class="btn btn-hero-withdraw" id="heroQuickWithdrawBtn">
+              <span>⚡ Request Payout</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- FOR ADMIN: Executive Conversion Velocity & Response Pulse -->
+        <div class="bento-revenue-right bento-admin-right" id="adminRevenueSummaryBox" style="display:none;">
+          <div class="admin-kpi-summary-grid">
+            <div class="admin-kpi-summary-pill">
+              <span class="admin-kpi-label">Conversion Rate</span>
+              <strong class="admin-kpi-val text-emerald" id="adminHeroConversionRate">0%</strong>
+              <span class="admin-kpi-sub" id="adminHeroConversionSub">Deals won vs pipeline</span>
+            </div>
+            <div class="admin-kpi-summary-pill">
+              <span class="admin-kpi-label">Inbound Response</span>
+              <strong class="admin-kpi-val text-sky" id="adminHeroReplyRate">0%</strong>
+              <span class="admin-kpi-sub" id="adminHeroReplyCount">0 of 0 leads replied</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- ADMIN EXCLUSIVE KPI 1: Total Messages Sent -->
+      <article class="bento-card bento-card-messages admin-only-widget" id="kpiCardAdminMessages" style="display:none;">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-messages">
+              <div class="radar-pulse"></div>
+              <span>💬</span>
+            </div>
+            <div>
+              <span class="bento-card-title">Messages Sent</span>
+              <span class="bento-card-desc">Company-wide traffic</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-sky">Live Sync</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="adminMetricMessagesSent">0</strong>
+          <div class="bento-wave-sparkline">
+            <span class="spark-bar bar-1"></span>
+            <span class="spark-bar bar-2"></span>
+            <span class="spark-bar bar-3"></span>
+            <span class="spark-bar bar-4"></span>
+            <span class="spark-bar bar-5"></span>
+          </div>
+        </div>
+        <span class="bento-footer-note" id="adminMetricMessagesSub">Outbound & closer messages</span>
+      </article>
+
+      <!-- ADMIN EXCLUSIVE KPI 2: People Replied -->
+      <article class="bento-card bento-card-replies admin-only-widget" id="kpiCardAdminReplies" style="display:none;">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-replies">
+              <span>👥</span>
+            </div>
+            <div>
+              <span class="bento-card-title">People Replied</span>
+              <span class="bento-card-desc">Inbound customer responses</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-emerald" id="adminMetricReplyRateBadge">0% Replied</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="adminMetricPeopleReplied">0</strong>
+          <span class="bento-micro-badge" id="adminMetricReplyCountBadge">0 leads</span>
+        </div>
+        <span class="bento-footer-note" id="adminMetricReplyFooter">Active conversations engaged</span>
+      </article>
+
+      <!-- ADMIN EXCLUSIVE KPI 3: Dead Leads (Won't Pay / Dropped) -->
+      <article class="bento-card bento-card-dead admin-only-widget" id="kpiCardAdminDead" style="display:none;">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-dead">
+              <span>🚫</span>
+            </div>
+            <div>
+              <span class="bento-card-title">Dead Leads</span>
+              <span class="bento-card-desc">Cold or Won't Pay</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-rose">Dropped</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="adminMetricDeadLeads">0</strong>
+          <span class="bento-micro-badge muted" id="adminMetricDeadPercent">0% of total</span>
+        </div>
+        <span class="bento-footer-note">Refused or dropped contacts</span>
+      </article>
+
+      <!-- ADMIN EXCLUSIVE KPI 4: Conversion Rate -->
+      <article class="bento-card bento-card-conversion admin-only-widget" id="kpiCardAdminConversion" style="display:none;">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-conversion">
+              <span>🎯</span>
+            </div>
+            <div>
+              <span class="bento-card-title">Conversion Rate</span>
+              <span class="bento-card-desc">Closing efficiency</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-purple">Efficiency</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="adminMetricConversionVal">0%</strong>
+          <div class="bento-mini-ring-wrap" title="Closing Efficiency">
+            <svg class="bento-mini-ring" width="36" height="36" viewBox="0 0 36 36">
+              <circle class="ring-bg" cx="18" cy="18" r="14" fill="none" stroke-width="3.5"/>
+              <circle class="ring-fg" id="adminConversionMiniRing" cx="18" cy="18" r="14" fill="none" stroke-width="3.5" stroke-dasharray="88" stroke-dashoffset="88"/>
+            </svg>
+            <span class="ring-center-icon">⚡</span>
+          </div>
+        </div>
+        <span class="bento-footer-note" id="adminMetricWonSummary">0 won out of 0 closed</span>
+      </article>
+
+      <!-- 2. Ongoing Leads Widget -->
+      <article class="bento-card bento-card-ongoing" id="kpiCardOngoing">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-ongoing">
+              <div class="radar-pulse"></div>
+              <span>💬</span>
+            </div>
+            <div>
+              <span class="bento-card-title">Ongoing Leads</span>
+              <span class="bento-card-desc">Active in pipeline</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-amber">Live</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="employeeMetricOngoing">0</strong>
+          <div class="bento-wave-sparkline">
+            <span class="spark-bar bar-1"></span>
+            <span class="spark-bar bar-2"></span>
+            <span class="spark-bar bar-3"></span>
+            <span class="spark-bar bar-4"></span>
+            <span class="spark-bar bar-5"></span>
+          </div>
+        </div>
+        <span class="bento-footer-note">Client discussions in progress</span>
+      </article>
+
+      <!-- 3. Total Closed Deals Widget -->
+      <article class="bento-card bento-card-closed" id="kpiCardClosed">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-closed">
+              <span>🎯</span>
+            </div>
+            <div>
+              <span class="bento-card-title">Total Closed</span>
+              <span class="bento-card-desc">Won + Settled</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-emerald">Closed</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="employeeMetricClosed">0</strong>
+          <div class="bento-mini-ring-wrap" title="Win Rate">
+            <svg class="bento-mini-ring" width="36" height="36" viewBox="0 0 36 36">
+              <circle class="ring-bg" cx="18" cy="18" r="14" fill="none" stroke-width="3.5"/>
+              <circle class="ring-fg" id="bentoWinRateRing" cx="18" cy="18" r="14" fill="none" stroke-width="3.5" stroke-dasharray="88" stroke-dashoffset="88"/>
+            </svg>
+            <span class="ring-center-icon">🏆</span>
+          </div>
+        </div>
+        <span class="bento-footer-note" id="employeeMetricClosedSub">0 won • 0 lost</span>
+      </article>
+
+      <!-- 4. Total In Review Widget -->
+      <article class="bento-card bento-card-review" id="kpiCardReview">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-review">
+              <div class="hourglass-pulse"></div>
+              <span>⏳</span>
+            </div>
+            <div>
+              <span class="bento-card-title">In Review</span>
+              <span class="bento-card-desc">Pending approval</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-purple">Audit</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="employeeMetricReview">0</strong>
+          <span class="bento-micro-badge">Escrow / Slip</span>
+        </div>
+        <span class="bento-footer-note">Awaiting payment verification</span>
+      </article>
+
+      <!-- 5. Won't Pay / Unresponsive Widget -->
+      <article class="bento-card bento-card-wontpay" id="kpiCardWontPay">
+        <div class="bento-card-header">
+          <div class="bento-header-left">
+            <div class="bento-icon-box box-wontpay">
+              <span>🚫</span>
+            </div>
+            <div>
+              <span class="bento-card-title">Won't Pay</span>
+              <span class="bento-card-desc">Cold or dropped</span>
+            </div>
+          </div>
+          <span class="bento-status-chip chip-rose">Dropped</span>
+        </div>
+        <div class="bento-metric-body">
+          <strong class="bento-counter" id="employeeMetricWontPay">0</strong>
+          <span class="bento-micro-badge muted">Archived</span>
+        </div>
+        <span class="bento-footer-note">Refused or invalid contacts</span>
+      </article>
+
+    </section>
+
+    <!-- 3. Pipeline Health & Segmented Visual Gauge -->
+    <section class="profile-pipeline-progress">
+      <div class="pipeline-progress-header">
+        <div>
+          <span class="workspace-eyebrow">PIPELINE HEALTH &amp; FLOW</span>
+          <h2 style="font-size:15px;font-weight:750;margin:2px 0;">Deal Distribution &amp; Conversion</h2>
+        </div>
+        <div class="pipeline-win-rate-pill" id="profileWinRateBadge">Win Rate: 0%</div>
+      </div>
+
+      <div class="pipeline-segmented-track">
+        <div class="seg-block seg-ongoing" id="progSegOngoing" style="width:0%;" title="Ongoing"></div>
+        <div class="seg-block seg-review" id="progSegReview" style="width:0%;" title="In Review"></div>
+        <div class="seg-block seg-paid" id="progSegPaid" style="width:0%;" title="Paid"></div>
+        <div class="seg-block seg-wontpay" id="progSegWontPay" style="width:0%;" title="Won't Pay"></div>
+      </div>
+
+      <div class="pipeline-chips-grid">
+        <div class="pipeline-chip chip-ongoing">
+          <span class="chip-dot"></span>
+          <span class="chip-name">Ongoing</span>
+          <strong class="chip-val" id="chipOngoingVal">0%</strong>
+        </div>
+        <div class="pipeline-chip chip-review">
+          <span class="chip-dot"></span>
+          <span class="chip-name">In Review</span>
+          <strong class="chip-val" id="chipReviewVal">0%</strong>
+        </div>
+        <div class="pipeline-chip chip-paid">
+          <span class="chip-dot"></span>
+          <span class="chip-name">Paid</span>
+          <strong class="chip-val" id="chipPaidVal">0%</strong>
+        </div>
+        <div class="pipeline-chip chip-wontpay">
+          <span class="chip-dot"></span>
+          <span class="chip-name">Won't Pay</span>
+          <strong class="chip-val" id="chipWontPayVal">0%</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Earnings & Withdrawal Requests Portal -->
+    <section class="employee-withdrawal-section" id="employeeWithdrawalSection">
+      <div class="withdrawal-header-row">
+        <div>
+          <span class="workspace-eyebrow" id="wdSectionEyebrow">COMMISSION &amp; SETTLEMENTS</span>
+          <h2 class="withdrawal-section-title" id="wdSectionTitle">Earnings &amp; Payout Portal</h2>
+          <p class="withdrawal-section-sub" id="wdSectionSub">Request withdrawals directly to EasyPaisa, JazzCash, or Bank Account.</p>
+        </div>
+        <button type="button" class="btn btn-request-payout" id="openWithdrawModalBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>Request Payout</span>
+        </button>
+      </div>
+
+      <!-- Financial Balance Strip -->
+      <div class="withdrawal-balance-strip">
+        <div class="wd-balance-card card-available" id="wdCard1">
+          <div class="wd-card-top">
+            <span class="wd-card-label" id="wdCard1Label">Available for Payout</span>
+            <span class="wd-card-badge badge-green" id="wdCard1Badge">Ready</span>
+          </div>
+          <div class="wd-card-amount">
+            <span class="wd-currency">PKR</span>
+            <strong class="wd-value" id="wdAvailableAmount">0</strong>
+          </div>
+          <div class="wd-card-action-row" id="wdCard1ActionRow">
+            <span class="wd-card-footer" id="wdCard1Footer">Earned from verified closed deals</span>
+            <button type="button" class="btn btn-card-withdraw" id="cardQuickWithdrawBtn">
+              <span>Withdraw →</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="wd-balance-card card-pending" id="wdCard2">
+          <div class="wd-card-top">
+            <span class="wd-card-label" id="wdCard2Label">Pending Clearance</span>
+            <span class="wd-card-badge badge-amber" id="wdCard2Badge">Processing</span>
+          </div>
+          <div class="wd-card-amount">
+            <span class="wd-currency">PKR</span>
+            <strong class="wd-value" id="wdPendingAmount">0</strong>
+          </div>
+          <span class="wd-card-footer" id="wdPendingCount">0 requests under review</span>
+        </div>
+
+        <div class="wd-balance-card card-settled" id="wdCard3">
+          <div class="wd-card-top">
+            <span class="wd-card-label" id="wdCard3Label">Total Withdrawn</span>
+            <span class="wd-card-badge badge-blue" id="wdCard3Badge">Settled</span>
+          </div>
+          <div class="wd-card-amount">
+            <span class="wd-currency">PKR</span>
+            <strong class="wd-value" id="wdSettledAmount">0</strong>
+          </div>
+          <span class="wd-card-footer" id="wdSettledCount">Transferred to accounts</span>
+        </div>
+      </div>
+
+      <!-- Withdrawal History Table / Ledger -->
+      <div class="withdrawal-history-box">
+        <div class="withdrawal-history-header">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 1 0 7h5a3.5 3.5 0 0 0 0 7H6"/></svg>
+            <strong id="withdrawalHistoryTitle">Recent Withdrawal Requests</strong>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <!-- Filter tabs for Admin -->
+            <div class="wd-filter-tabs" id="adminWdFilterTabs" style="display:none;align-items:center;gap:6px;">
+              <button type="button" class="wd-filter-btn active" data-wd-filter="all">All</button>
+              <button type="button" class="wd-filter-btn" data-wd-filter="pending">Pending</button>
+              <button type="button" class="wd-filter-btn" data-wd-filter="approved">Approved</button>
+              <button type="button" class="wd-filter-btn" data-wd-filter="rejected">Rejected</button>
+            </div>
+            <span class="text-xs text-muted" id="withdrawalHistoryCount">0 Requests</span>
+          </div>
+        </div>
+        <div class="withdrawal-history-list" id="withdrawalHistoryList">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Assigned Pipeline Lead Directory -->
+    <section class="employee-board">
+      <div class="employee-board-heading">
+        <div>
+          <span class="workspace-eyebrow">MY PIPELINE</span>
+          <h2>Assigned Customer Conversations (<span id="profileAssignedCount">0</span>)</h2>
+        </div>
+        <div class="board-filters">
+          <button type="button" class="profile-filter-btn active" data-pipeline-filter="all">All</button>
+          <button type="button" class="profile-filter-btn" data-pipeline-filter="ongoing">Ongoing</button>
+          <button type="button" class="profile-filter-btn" data-pipeline-filter="pending_verification">In Review</button>
+          <button type="button" class="profile-filter-btn" data-pipeline-filter="paid">Paid</button>
+          <button type="button" class="profile-filter-btn" data-pipeline-filter="useless">Won't Pay</button>
+          <button type="button" class="profile-filter-btn" data-pipeline-filter="takeover" id="pipelineFilterTakeover" style="display:none;background:rgba(245,158,11,0.12);color:#f59e0b;border-color:rgba(245,158,11,0.35);font-weight:700;">⚡ Takeover</button>
+          <button type="button" class="btn btn-xs btn-trash-toggle" id="pipelineDeleteToggleBtn" style="margin-left:6px;">
+            🗑️ Delete Chats
+          </button>
+        </div>
+      </div>
+
+      <!-- Pipeline Batch Delete Toolbar -->
+      <div id="pipelineBatchBar" class="admin-batch-bar" style="display:none;margin:10px 0 14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.22);border-radius:12px;padding:10px 16px;align-items:center;justify-content:space-between;">
+        <label class="batch-select-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:700;">
+          <input type="checkbox" id="pipelineSelectAllCheckbox" style="width:18px;height:18px;accent-color:#ef4444;cursor:pointer;">
+          <span>Select All Pipeline Chats</span>
+        </label>
+        <div class="batch-actions" style="display:flex;align-items:center;gap:10px;">
+          <span id="pipelineSelectedCount" style="color:var(--text-muted);font-weight:700;">0 selected</span>
+          <button type="button" id="pipelineDeleteBtn" class="btn btn-rose btn-sm" style="background:#ef4444;color:#fff;font-weight:750;padding:6px 14px;border-radius:8px;border:none;cursor:pointer;">
+            🗑️ Permanently Delete Selected
+          </button>
+          <button type="button" id="pipelineCancelDeleteBtn" class="btn btn-ghost btn-sm" style="padding:6px 10px;border-radius:8px;">
+            Done
+          </button>
+        </div>
+      </div>
+
+      <div class="employee-lead-list" id="employeeLeadList"></div>
+    </section>
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════
+       VIEW 1: UNIFIED 3-PANE TEAM MESSENGER
+  ════════════════════════════════════════════════════════ -->
+  <main class="inbox-view-container" id="viewInbox">
+
+    <!-- Pane 1: Conversations List -->
+    <aside class="conversations-col">
+      <div class="conv-header">
+        <div class="conv-title-row">
+          <span id="convTitleText">All chats</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button type="button" class="btn btn-xs btn-my-ongoings" id="myOngoingsBtn" title="Show all your ongoing leads">
+              <span>🟡 My Ongoings</span>
+              <span class="badge-count" id="myOngoingCountBadge">0</span>
+            </button>
+            <span class="panel-badge" id="convTotalBadge">8 Leads</span>
+            <button type="button" class="btn btn-xs btn-trash-toggle" id="adminDeleteToggleBtn" style="color:#ef4444;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:6px;padding:3px 7px;font-weight:700;cursor:pointer;" title="Toggle multi-chat deletion">
+              🗑️ Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin Batch Delete Bar -->
+        <div id="adminBatchBar" class="admin-batch-bar" style="display:none;margin:8px 0;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:6px 10px;align-items:center;justify-content:space-between;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11.5px;font-weight:700;">
+            <input type="checkbox" id="batchSelectAllCheckbox" style="accent-color:#ef4444;cursor:pointer;">
+            <span>Select All</span>
+          </label>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span id="batchSelectedCount" style="font-size:11px;color:var(--text-muted);font-weight:700;">0 selected</span>
+            <button type="button" id="batchDeleteBtn" class="btn btn-xs" style="background:#ef4444;color:#fff;font-weight:700;border:none;border-radius:6px;padding:3px 8px;cursor:pointer;" disabled>Delete</button>
+            <button type="button" id="batchCancelBtn" class="btn btn-ghost btn-xs" style="font-size:11px;padding:2px 6px;cursor:pointer;">✕</button>
+          </div>
+        </div>
+        <input type="text" id="convSearchInput" class="conv-search-input" placeholder="Search by name or phone…">
+        <div class="inbox-filter-bar">
+          <button class="inbox-filter-btn active" data-filter="all">All</button>
+          <button class="inbox-filter-btn filter-fresh" data-filter="fresh">🔴 Fresh</button>
+          <button class="inbox-filter-btn filter-ongoing" data-filter="ongoing">🟡 Ongoing</button>
+          <button class="inbox-filter-btn filter-pending" data-filter="pending_verification">⚪ Review</button>
+          <button class="inbox-filter-btn filter-paid" data-filter="paid">🟢 Paid</button>
+          <button class="inbox-filter-btn filter-useless" data-filter="useless">🔵 Won't Pay</button>
+          <button class="inbox-filter-btn filter-takeover" data-filter="takeover" id="inboxFilterTakeover" style="display:none;color:#f59e0b;font-weight:700;">⚡ Takeover</button>
+          <button class="inbox-filter-btn filter-mine" data-filter="mine">👤 Mine</button>
+        </div>
+      </div>
+      <div class="conversations-scroll" id="conversationsScroll"></div>
+    </aside>
+
+    <!-- Pane 2: Active Chat Thread -->
+    <section class="chat-thread-col" id="chatThreadCol" style="position:relative;">
+      <div class="chat-transition-overlay" id="chatTransitionOverlay" aria-hidden="true">
+        <div class="chat-transition-logo-box">
+          <img src="assets/images/chatly-icon.png" alt="Chatly" class="chat-transition-logo">
+        </div>
+        <div class="chat-transition-spinner"></div>
+        <span class="chat-transition-text">Opening Chatly conversation…</span>
+      </div>
+      <div class="chat-header">
+        <div class="chat-lead-info">
+          <button type="button" class="chat-back-btn" id="chatBackBtn" title="Back to conversations">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="conv-avatar-wrap" style="width:38px;height:38px;">
+            <span class="avatar-initials" id="chatLeadAvatar">ZT</span>
+            <div class="lead-status-dot status-ongoing" id="chatLeadDot"></div>
+          </div>
+          <div>
+            <div class="chat-lead-title" style="display:flex;align-items:center;gap:8px;">
+              <span id="chatLeadName">Zeeshan Tariq</span>
+              <button type="button" id="editLeadNameBtn" title="Give custom name to this contact" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:var(--cyan);cursor:pointer;padding:1px 6px;border-radius:4px;font-size:11px;font-weight:600;">Edit Name</button>
+              <span id="chatLeadStatusBadge" class="status-pill-clean ongoing">🟡 Ongoing</span>
+            </div>
+            <div class="chat-lead-meta" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span class="mono text-xs" id="chatLeadPhone" style="display:none;"></span>
+              <span id="chatPresence" class="chat-presence" aria-live="polite" style="display:none;"></span>
+              <span class="lead-closer-text" id="chatLeadCloser" style="display:none;"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-header-actions">
+          <button class="btn btn-paid btn-xs" id="markPaidHeaderBtn" title="Mark client as Paid">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Mark Paid</span>
+          </button>
+
+          <button class="btn btn-emerald btn-xs" id="verifyPaidHeaderBtn" style="display:none;" title="Verify & approve payment">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Verify Payment</span>
+          </button>
+          <button class="btn btn-rose btn-xs" id="rejectPaidHeaderBtn" style="display:none;" title="Reject fake transaction">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>Reject Fake</span>
+          </button>
+
+          <!-- ⚡ ADMIN TAKEOVER BUTTON -->
+          <button class="btn btn-warning btn-xs" id="adminTakeoverBtn" style="display:none;background:#f59e0b;color:#000;font-weight:750;" title="Admin Takeover — Lead conversation transfer with closer commission protected">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>⚡ Takeover</span>
+          </button>
+
+          <button class="btn btn-warning btn-xs" id="cantHandleBtn" title="Won't handle — release lead">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            <span>Won't Handle</span>
+          </button>
+
+          <button class="btn btn-useless btn-xs" id="markUselessHeaderBtn" title="Mark as Won't Pay">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <span>Won't Pay</span>
+          </button>
+
+          <button class="btn btn-xs" id="deleteCurrentChatBtn" title="Permanently delete this chat from server" style="background:rgba(239,68,68,0.12);color:#ef4444;border:1px solid rgba(239,68,68,0.28);font-weight:700;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <span>Delete Chat</span>
+          </button>
+
+          <button class="btn btn-secondary btn-xs" id="simClientAudioBtn" title="Simulate incoming voice message">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            <span>+ Audio</span>
+          </button>
+
+          <div class="header-action-divider"></div>
+
+          <button type="button" class="btn btn-crm-toggle" id="dossierToggleBtn" title="Open / Close Lead CRM Panel" aria-expanded="false">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            <span>Lead CRM</span>
+            <svg class="crm-toggle-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Other closer notice -->
+      <div id="otherCloserNotice" class="other-closer-notice" style="display:none;">
+        👑 <strong id="otherCloserName">Closer Specialist</strong> is handling this lead. (Admin Monitoring Mode)
+      </div>
+
+      <!-- Admin Takeover Notice Banner -->
+      <div id="adminTakeoverNotice" class="admin-takeover-notice" style="display:none;background:linear-gradient(90deg, rgba(245,158,11,0.18), rgba(245,158,11,0.08));border-bottom:1px solid rgba(245,158,11,0.35);padding:9px 16px;font-size:12px;color:#d97706;align-items:center;justify-content:space-between;font-weight:600;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:16px;">⚡</span>
+          <span><strong>Admin Takeover Active:</strong> Handled by <span id="takeoverAdminName" style="color:var(--text-primary);font-weight:750;">Admin</span>. Closer <span id="takeoverOriginalCloser" style="color:var(--emerald);font-weight:750;">Closer</span>'s commission is <strong>100% protected</strong>! 🛡️</span>
+        </div>
+        <span class="badge-role-admin" style="font-size:10px;padding:2px 8px;background:rgba(245,158,11,0.2);color:#d97706;border:1px solid rgba(245,158,11,0.4);">Executive Mode</span>
+      </div>
+
+      <!-- Messages Thread -->
+      <div class="chat-messages-area" id="chatMessagesArea"></div>
+
+      <!-- Hidden file inputs for attachments -->
+      <input type="file" id="composerFileInput" accept="image/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" style="display:none;">
+      <input type="file" id="audioFileInput" accept="audio/*" style="display:none;">
+
+      <!-- Message Composer -->
+      <div class="chat-composer-bar" id="chatComposerBar">
+        <div id="composerNormalView" class="composer-inner-wrap">
+          <button type="button" class="btn-composer-icon" id="audioUploadBtn" title="Attach Document (PDF, Word, Excel), Image, or Audio File">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
+
+          <textarea id="chatInput" class="chat-input" rows="1" placeholder="Write a message…"></textarea>
+
+          <button type="button" class="btn-composer-mic" id="voiceRecordBtn" title="Record voice note">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+
+          <button class="btn btn-wa btn-send-circle" id="sendMsgBtn" title="Send Message" aria-label="Send Message">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+
+        <!-- Recording View -->
+        <div id="composerRecordingView" class="composer-recording-wrap" style="display:none;">
+          <div class="recording-indicator">
+            <span class="recording-pulse-dot"></span>
+            <span class="recording-label">Recording…</span>
+            <span id="recordingTimer" class="recording-timer">0:00</span>
+          </div>
+          <div class="recording-soundwave">
+            <span class="soundbar"></span><span class="soundbar"></span>
+            <span class="soundbar"></span><span class="soundbar"></span>
+            <span class="soundbar"></span><span class="soundbar"></span>
+            <span class="soundbar"></span><span class="soundbar"></span>
+          </div>
+          <div class="recording-actions">
+            <button type="button" class="btn btn-rose btn-sm" id="cancelRecordBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              <span>Discard</span>
+            </button>
+            <button type="button" class="btn btn-emerald btn-sm" id="sendRecordBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Send Audio</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pane 3: Lead CRM Dossier -->
+    <aside class="lead-dossier-col closed" id="leadDossierCol">
+      <div class="dossier-drawer-header" id="dossierDrawerHeader">
+        <div class="dossier-drawer-title">
+          <div class="widget-icon-pill">⚡</div>
+          <span>Lead CRM & Sales Control</span>
+        </div>
+        <button type="button" class="dossier-close-btn" id="closeDossierDrawerBtn" title="Close CRM Panel (Esc)">✕</button>
+      </div>
+
+      <!-- WIDGET 1: Status Matrix -->
+      <div class="dossier-widget widget-status">
+        <div class="widget-header">
+          <span class="widget-badge-label">Lifecycle Status</span>
+          <div id="dossierStatusPill" class="status-pill-clean ongoing">🟡 Ongoing</div>
+        </div>
+        <div class="status-matrix-grid">
+          <button type="button" class="matrix-btn matrix-fresh" data-set-state="fresh" id="matrixBtnFresh">
+            <span class="matrix-dot dot-fresh"></span><span>Fresh</span>
+          </button>
+          <button type="button" class="matrix-btn matrix-ongoing" data-set-state="ongoing" id="matrixBtnOngoing">
+            <span class="matrix-dot dot-ongoing"></span><span>Ongoing</span>
+          </button>
+          <button type="button" class="matrix-btn matrix-pending" data-set-state="pending_verification" id="matrixBtnPending">
+            <span class="matrix-dot dot-pending"></span><span>Review</span>
+          </button>
+          <button type="button" class="matrix-btn matrix-paid" data-set-state="paid" id="matrixBtnPaid">
+            <span class="matrix-dot dot-paid"></span><span>Paid</span>
+          </button>
+          <button type="button" class="matrix-btn matrix-useless" data-set-state="useless" id="matrixBtnUseless">
+            <span class="matrix-dot dot-useless"></span><span>Won't pay</span>
+          </button>
+        </div>
+        <div class="deal-value-row">
+          <div class="deal-plan-wrap">
+            <span class="text-xs text-muted">Tier:</span>
+            <span class="lead-plan-badge" id="dossierInterest">Nunno Pro</span>
+          </div>
+          <div class="deal-val-amount" id="dossierDealValue">PKR 5,000</div>
+        </div>
+      </div>
+
+      <!-- WIDGET 2: Assigned Closer -->
+      <div class="dossier-widget widget-agent">
+        <div class="widget-header">
+          <span class="widget-badge-label">Assigned Closer</span>
+          <span class="agent-lock-badge" id="dossierLockBadge">🔒 Locked</span>
+        </div>
+        <div class="closer-profile-card">
+          <div class="closer-avatar" id="dossierOwnerAvatar">👨‍💼</div>
+          <div class="closer-info">
+            <div class="closer-name" id="dossierOwner">Closer Specialist</div>
+            <div class="closer-role" id="dossierOwnerRole">Team Member • EMP-101</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WIDGET 3: Quick Conversion Actions -->
+      <div class="dossier-widget widget-actions">
+        <span class="widget-badge-label">Quick Conversion Actions</span>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+          <div id="dossierAdminVerifActions" style="display:none;flex-direction:column;gap:6px;">
+            <button type="button" class="btn btn-emerald btn-sm" id="dossierVerifyBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Verify Payment (Turn Green)</span>
+            </button>
+            <button type="button" class="btn btn-rose btn-sm" id="dossierRejectBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              <span>Reject Fake Sale</span>
+            </button>
+          </div>
+          <div id="dossierPendingNotice" style="display:none;background:rgba(107,114,128,0.06);border:1px solid rgba(107,114,128,0.2);border-radius:8px;padding:8px 10px;font-size:11.5px;color:#9ca3af;line-height:1.4;">
+            ⚪ <strong>Under Verification:</strong> Payment submitted. Awaiting Admin confirmation.
+          </div>
+          <button type="button" class="btn btn-paid btn-sm" id="dossierPaidBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Confirm Client Paid (Closed)</span>
+          </button>
+          <button type="button" class="btn btn-useless btn-sm" id="dossierUselessBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <span>Mark as Useless (Won't Pay)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- WIDGET 4: Private Notes -->
+      <div class="dossier-widget widget-notes" style="flex:1;min-height:190px;">
+        <div class="widget-header">
+          <span class="widget-badge-label">Private Closer Notes</span>
+          <span id="notesSavedIndicator" class="text-xs notes-saved">Auto-saved</span>
+        </div>
+        <div class="sales-quick-tags">
+          <span class="sales-tag" data-append="Offered 30% discount">+ 30% Offer</span>
+          <span class="sales-tag" data-append="Scalping Binance Futures">+ Scalper</span>
+          <span class="sales-tag" data-append="EasyPaisa details shared">+ EasyPaisa</span>
+          <span class="sales-tag" data-append="Wants free trial only">+ Wants Free</span>
+          <span class="sales-tag" data-append="Refused to pay / Inactive">+ Won't Pay</span>
+        </div>
+        <textarea id="dossierNotes" class="dossier-notes-area" placeholder="Type sales intel here…"></textarea>
+      </div>
+    </aside>
+
+    <!-- Drawer Backdrop -->
+    <div class="dossier-backdrop" id="dossierBackdrop"></div>
+  </main>
+
+  <!-- ════════════════════════════════════════════════════════
+       VIEW 2: CAMPAIGN STUDIO
+  ════════════════════════════════════════════════════════ -->
+  <div class="view-container" id="viewCampaign">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h2 style="font-size:20px;font-weight:800;display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">🚀</span>
+          <span class="grad-text">Multi-Device Campaign Dispatcher</span>
+        </h2>
+        <p class="text-xs text-muted" style="margin-top:4px;">Dispatches outreach using all connected TL &amp; TM WhatsApp numbers simultaneously in batches.</p>
+      </div>
+      <div id="campaignStatusBadge" class="panel-badge">⚪ Ready to Launch</div>
+    </div>
+
+    <!-- ═══════════════ STEP 1: Connected WhatsApps Widget (All Admin Portals) ═══════════════ -->
+    <div class="panel" id="campaignSendersPoolCard" style="margin-bottom: 20px; padding: 18px 20px; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.03);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+        <div>
+          <div style="font-weight:800; font-size:15px; color:#fff; display:flex; align-items:center; gap:8px;">
+            <span>📱</span> Connected WhatsApp Numbers (TMs &amp; TLs)
+          </div>
+          <p class="text-xs text-muted" style="margin:3px 0 0; line-height:1.45;">
+            All registered WhatsApp numbers of active Team Members and Team Leaders. All devices send <strong>simultaneously per batch</strong>. Click <strong>Refresh</strong> after onboarding new TMs or TLs.
+          </p>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span id="campaignPoolCountBadge" class="panel-badge" style="color:var(--emerald); background:rgba(16,185,129,0.15); border-color:rgba(16,185,129,0.35); font-size:12px; font-weight:750; padding:5px 12px;">
+            Loading devices…
+          </span>
+          <button type="button" class="btn btn-warning btn-xs" id="campaignScanQrBtn" style="padding:7px 14px; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+            <span>📱</span> Link Phone / Scan QR
+          </button>
+          <button type="button" class="btn btn-emerald btn-xs" id="refreshCampaignSendersBtn" style="padding:7px 14px; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;">
+            <span>🔄</span> Refresh WhatsApps
+          </button>
+        </div>
+      </div>
+
+      <!-- Senders Cards Grid -->
+      <div id="campaignSendersPoolContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:12px; margin-bottom:14px;">
+        <div class="text-xs text-muted" style="padding:12px;">Loading connected team WhatsApp numbers…</div>
+      </div>
+
+      <!-- Batch Send Explanation -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; background:rgba(16,185,129,0.06); border:1px dashed rgba(16,185,129,0.3); border-radius:8px; padding:10px 14px;">
+        <div id="campaignRotationFlowPreview" style="font-size:12px; color:var(--cyan); font-family:monospace; font-weight:600;">
+          ⚡ Batch Dispatch: All connected WhatsApps send simultaneously
+        </div>
+        <div id="campaignCycleMathInfo" style="font-size:11.5px; color:var(--text-muted);">
+          Each batch = 1 msg per connected device &bull; Repeats until all numbers are delivered
+        </div>
+      </div>
+    </div>
+
+    <div class="campaign-grid">
+      <!-- COL 1: Audience -->
+      <aside class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span>Target Audience</span>
+          </div>
+          <span id="campaignAudienceBadge" class="panel-badge">0 Contacts</span>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" for="campaignNameInput">Campaign Name</label>
+          <input type="text" id="campaignNameInput" class="form-input" value="OmniDesk campaign" placeholder="e.g. October product update">
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <label class="form-label" style="margin:0;">Drop Phone Numbers (.txt / .csv)</label>
+            <button type="button" class="btn btn-ghost btn-xs" id="quickAddMyNumberBtn" style="color:var(--cyan);font-size:10px;padding:2px 7px;">⚡ Load My #</button>
+          </div>
+          <input type="file" id="campaignFileInput" accept=".txt,.csv" style="display:none;">
+          <div class="campaign-drop-zone" id="campaignDropZone">
+            <div class="drop-zone-icon">📥</div>
+            <div class="drop-zone-title">Drop your .txt phone list here</div>
+            <div class="drop-zone-sub">or <span class="drop-zone-browse">browse files</span></div>
+            <div class="drop-zone-hint">Format: 03001234567, Ali, Lahore (1 per line)</div>
+          </div>
+        </div>
+
+        <div>
+          <button type="button" class="btn btn-ghost btn-xs" id="togglePasteAreaBtn" style="width:100%;justify-content:center;">
+            ✏️ Or Paste Phone Numbers Manually
+          </button>
+          <textarea id="campaignPasteArea" class="form-textarea mono text-xs" style="display:none;min-height:80px;margin-top:6px;" placeholder="03001234567, Ali, Lahore&#10;03214567890, Bilal, Karachi"></textarea>
+          <button type="button" class="btn btn-secondary btn-xs" id="applyPasteNumbersBtn" style="display:none;width:100%;margin-top:4px;justify-content:center;">Parse & Add Numbers</button>
+        </div>
+
+        <div id="campaignAudienceSummary" style="display:none;" class="campaign-audience-summary">
+          <span>👥 <strong id="campaignLoadedCountText">0 Numbers</strong> loaded</span>
+          <button type="button" class="btn btn-ghost btn-xs" id="clearAudienceBtn" style="color:var(--red);">Clear</button>
+        </div>
+        <div id="campaignAudienceList" class="campaign-audience-list" style="display:none;"></div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Assign Created Leads To</label>
+          <select id="campaignAssignSelect" class="form-select form-select-sm">
+            <option value="round_robin" selected>🔄 Multi-Device Round-Robin (Assigned to Sender TL/TM)</option>
+            <option value="pool">🟢 Open Pool (Shared access)</option>
+            <option value="mine">🔒 Myself (Current Closer)</option>
+          </select>
+        </div>
+      </aside>
+
+      <!-- COL 2: Message Content -->
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Message & delivery pace</span>
+          </div>
+          <span class="panel-badge" style="color:var(--cyan);">Personalized messages</span>
+        </div>
+
+        <div class="campaign-delay-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;font-size:12px;color:var(--text-secondary);">⏱️ Delivery pace</span>
+            <select id="campaignPresetSelect" class="form-select form-select-sm" style="width:auto;padding:3px 8px;font-size:11px;">
+              <option value="fast" selected>⚡ Fast (3s – 6s)</option>
+              <option value="recommended">🛡️ Steady (6s – 12s)</option>
+              <option value="human">👤 Relaxed (12s – 25s)</option>
+              <option value="custom">⚙️ Custom</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:8px;">
+            <div style="flex:1;">
+              <label class="text-xs text-muted" style="display:block;margin-bottom:2px;">Min Delay (s)</label>
+              <input type="number" id="campaignDelayMin" class="form-input form-input-sm" value="3" min="1" max="180">
+            </div>
+            <div style="flex:1;">
+              <label class="text-xs text-muted" style="display:block;margin-bottom:2px;">Max Delay (s)</label>
+              <input type="number" id="campaignDelayMax" class="form-input form-input-sm" value="6" min="2" max="300">
+            </div>
+          </div>
+        </div>
+
+
+        <!-- 3 Campaign Starting Variations -->
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Campaign Starting Variation</span>
+            <span class="badge-role-admin" style="font-size:9.5px;padding:1px 6px;">3 Formats</span>
+          </label>
+          <div class="campaign-variation-bar" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+            <button type="button" class="btn-var-select active" id="btnVarText" data-variation="text">
+              <span style="font-size:16px;">💬</span>
+              <span style="font-size:11px;font-weight:750;">Text Only</span>
+            </button>
+            <button type="button" class="btn-var-select" id="btnVarTextImage" data-variation="text_image">
+              <span style="font-size:16px;">🖼️</span>
+              <span style="font-size:11px;font-weight:750;">Text + Image</span>
+            </button>
+            <button type="button" class="btn-var-select" id="btnVarAudio" data-variation="audio">
+              <span style="font-size:16px;">🎙️</span>
+              <span style="font-size:11px;font-weight:750;">Just Audio</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Variation 2 Container: Image Attachment -->
+        <div id="campaignImageContainer" style="display:none;background:rgba(31, 224, 138,0.04);border:1px dashed rgba(31, 224, 138,0.3);border-radius:10px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <label class="form-label" style="margin:0;font-size:11.5px;font-weight:700;">Promotional Flyer / Image</label>
+            <button type="button" class="btn btn-ghost btn-xs" id="clearCampaignImgBtn" style="color:#ef4444;font-size:10px;display:none;">✕ Remove</button>
+          </div>
+          <input type="file" id="campaignImageInput" accept="image/png,image/jpeg,image/webp" style="display:none;">
+          <div id="campaignImageDrop" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;background:rgba(255,255,255,0.03);border-radius:8px;cursor:pointer;border:1px solid var(--border-subtle);text-align:center;">
+            <div id="campaignImagePlaceholder">
+              <span style="font-size:24px;">📁</span>
+              <div style="font-size:11.5px;font-weight:700;margin-top:4px;">Click to select promotional flyer image</div>
+              <div style="font-size:10px;color:var(--text-muted);">PNG, JPG, WebP up to 10MB</div>
+            </div>
+            <img id="campaignImagePreviewThumb" src="" alt="Flyer Preview" style="display:none;max-height:120px;border-radius:6px;object-fit:cover;box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+          </div>
+        </div>
+
+        <!-- Variation 3 Container: Audio Attachment -->
+        <div id="campaignAudioContainer" style="display:none;background:rgba(16,185,129,0.05);border:1px dashed rgba(16,185,129,0.3);border-radius:10px;padding:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <label class="form-label" style="margin:0;font-size:11.5px;font-weight:700;color:var(--emerald);">WhatsApp Voice Note (PTT) Audio</label>
+            <span style="font-size:10px;color:var(--emerald);font-weight:700;">🎙️ Native Voice</span>
+          </div>
+          <select id="campaignAudioPreset" class="form-select form-select-sm" style="margin-bottom:8px;">
+            <option value="preset_alpha">🎙️ Preset: Crypto Scalper Intro Voice Note (0:24)</option>
+            <option value="preset_starter">🎙️ Preset: Nunno Starter 1700 Pitch (0:32)</option>
+            <option value="preset_whale">🎙️ Preset: Whale VIP Private Invite (0:45)</option>
+            <option value="custom_audio">📁 Upload Custom Voice Note Audio (.mp3, .ogg, .wav)</option>
+          </select>
+          <input type="file" id="campaignAudioFileInput" accept="audio/*" style="display:none;">
+          <div id="campaignAudioPlayerBox" style="display:flex;align-items:center;gap:10px;background:rgba(16,185,129,0.08);padding:8px 12px;border-radius:8px;">
+            <button type="button" class="btn btn-emerald btn-xs" id="campaignAudioPlayBtn" style="border-radius:50%;width:30px;height:30px;padding:0;display:flex;align-items:center;justify-content:center;">▶</button>
+            <div style="flex:1;">
+              <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;">
+                <span id="campaignAudioTitle">Crypto Scalper Intro Voice Note</span>
+                <span id="campaignAudioDuration">0:24</span>
+              </div>
+              <div style="height:4px;background:rgba(16,185,129,0.25);border-radius:2px;margin-top:4px;overflow:hidden;">
+                <div id="campaignAudioBar" style="width:35%;height:100%;background:var(--emerald);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin:0;" id="campaignPitchPresetGroup">
+          <label class="form-label">Pitch Template</label>
+          <select id="campaignPitchPreset" class="form-select form-select-sm">
+            <option value="custom">✍️ Custom Message (Write Your Own)</option>
+            <option value="pro_liquidation_urdu" selected>💎 Crypto Liquidation Alert (Roman Urdu)</option>
+            <option value="starter_scalper">⚡ Nunno Starter (Rs. 1,700 Scalper)</option>
+            <option value="flash_discount">🔥 Flash 48-Hour Discount</option>
+            <option value="whale_institutional">🐋 Whale Institutional Alpha</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" style="display:flex;justify-content:space-between;">
+            <span>Personalization Tags</span>
+            <span class="text-xs text-muted">Click to insert</span>
+          </label>
+          <div class="tag-chips">
+            <span class="tag-chip" data-insert="{name}">{name}</span>
+            <span class="tag-chip" data-insert="{phone}">{phone}</span>
+            <span class="tag-chip" data-insert="{city}">{city}</span>
+            <span class="tag-chip" data-insert="{plan}">{plan}</span>
+            <span class="tag-chip" data-insert="{price}">{price}</span>
+            <span class="tag-chip" data-insert="{coupon}">{coupon}</span>
+            <span class="tag-chip" data-insert="{link}">{link}</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin:0;flex:1;">
+          <textarea id="campaignCustomMsg" class="form-textarea" style="min-height:150px;font-size:12.5px;" placeholder="Write your campaign message…">{Salam|AoA|Hello} {name|Bhai|Trader}!
+
+Kya aap bar bar market ke sudden wick ya stop-loss hunt se liquid ho rahe hain? 📉❌
+
+*Nunno AI Cloud* (`nunno.cloud`) ne Pakistan ke top traders ke liye *Liquidation Magnet System* launch kiya hai jo exact level pehle dikhata hai jahan whales target kar rahi hain.
+
+🔥 *Special Community Offer:*
+• Nunno Pro sirf *Rs. 5,000/month*
+• EasyPaisa, JazzCash aur USDT accepted
+• Coupon `NUNNO30` se *30% OFF*
+
+Live Demo: https://nunno.cloud
+
+_Reply STOP agar aap mazeed updates nahi chahte._</textarea>
+        </div>
+      </section>
+
+      <!-- COL 3: Preview & Launch -->
+      <aside class="panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <span>Live Message Preview</span>
+          </div>
+          <span class="panel-badge">Preview</span>
+        </div>
+
+        <div class="campaign-preview-stage" aria-label="WhatsApp message preview">
+          <div id="campaignBubblePreview" class="campaign-message-bubble"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button type="button" class="btn btn-wa btn-lg" id="startCampaignBtn" style="width:100%;justify-content:center;font-weight:700;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Start campaign</span>
+          </button>
+          <div style="display:flex;gap:6px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="pauseCampaignBtn" style="flex:1;display:none;">⏸️ Pause</button>
+            <button type="button" class="btn btn-rose btn-sm" id="stopCampaignBtn" style="flex:1;display:none;">⏹️ Stop</button>
+          </div>
+        </div>
+
+        <div id="campaignProgressCard" class="campaign-progress-wrap" style="display:none;">
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-secondary);">
+            <span>Progress: <strong id="campaignProgressCount">0 / 0</strong></span>
+            <span id="campaignProgressPct">0%</span>
+          </div>
+          <div class="campaign-progress-bar">
+            <div id="campaignProgressFill" class="campaign-progress-fill"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+            <span>Next in: <strong id="campaignCountdown" style="color:var(--cyan);">--</strong></span>
+            <span>Speed: <span id="campaignCurrentPace">--</span></span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin:0;">
+          <label class="form-label" style="display:flex;justify-content:space-between;">
+            <span>Live Dispatch Log</span>
+            <span class="text-xs text-muted" id="campaignLogCount">0 events</span>
+          </label>
+          <div id="campaignTerminalLog" class="campaign-terminal-log">
+            <div class="log-line log-info">System ready. Drop a .txt list or paste numbers to begin.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL 1: AGENT SWITCHER
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="agentModal">
+    <div class="modal-window">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="font-size:16px;font-weight:800;color:#fff;">Switch Active Closer Identity</div>
+        <button class="btn btn-ghost btn-xs" id="closeAgentModalBtn">✕</button>
+      </div>
+      <p class="text-xs text-muted" style="margin-bottom:16px;">Select your employee ID. Leads you claim lock exclusively to your ID — anti-theft protected.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;" id="agentListContainer"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL 2: CONNECT WHATSAPP NUMBER
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="connectWaModal">
+    <div class="modal-window">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">📱</span>
+          <div style="font-size:16px;font-weight:800;color:#fff;">Connect Your WhatsApp Number</div>
+        </div>
+        <button class="btn btn-ghost btn-xs" id="closeConnectWaModalBtn">✕</button>
+      </div>
+      <p class="text-xs text-muted" style="margin-top:4px;margin-bottom:16px;">On your phone, open WhatsApp → Settings → Linked devices → Link a device, then scan the code below. Your account stays linked for future campaigns.</p>
+      <div id="waConnectedBox" style="display:none;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:12px;margin:12px 0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#10b981;">✓ WhatsApp Connected</div>
+            <div style="font-size:12px;color:#cbd5e1;margin-top:2px;">Linked Number: <span id="waModalConnectedNum" class="mono font-bold" style="color:#fff;">Not Linked</span></div>
+          </div>
+          <button type="button" class="btn btn-warning btn-xs" id="reconnectWaBtn" style="padding:5px 12px;font-size:11px;font-weight:700;border-radius:5px;cursor:pointer;">🔄 Link New Number / Scan QR</button>
+        </div>
+      </div>
+      <div id="waConnectionStatus" role="status" aria-live="polite" style="margin:12px 0;">Click Connect to generate your QR code.</div>
+      <div style="text-align:center;">
+        <img id="waQrImage" alt="Scan this QR code using WhatsApp Linked devices" width="280" height="280" hidden style="max-width:100%;background:#fff;border-radius:10px;">
+      </div>
+      <p id="waPendingCampaign" class="text-xs text-muted" hidden>Your campaign will start automatically once your phone is linked. Cancel to stop this pending launch.</p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap;">
+        <button class="btn btn-warning btn-sm" id="forceRelinkWaBtn" style="font-weight:750;">⚡ Scan QR / Pair WhatsApp</button>
+        <button class="btn btn-ghost btn-sm" id="cancelConnectWaBtn">Cancel</button>
+        <button class="btn btn-wa btn-sm" id="saveConnectedWaBtn">Connect WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Lightbox Modal for Full Resolution Photo Viewing -->
+  <div class="modal-overlay" id="imageLightboxModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;">
+    <div style="position:relative;max-width:92vw;max-height:92vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+      <button type="button" id="closeImageLightboxBtn" style="position:absolute;top:-46px;right:0;color:#fff;font-size:22px;background:rgba(255,255,255,0.18);border:none;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;" title="Close preview">✕</button>
+      <img id="lightboxImageEl" src="" alt="Full resolution view" style="max-width:90vw;max-height:82vh;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,0.9);object-fit:contain;background:#000;">
+      <div style="margin-top:12px;display:flex;gap:12px;">
+        <a id="lightboxDownloadBtn" href="" download="whatsapp-image.jpg" class="btn btn-emerald btn-sm" style="text-decoration:none;font-weight:700;padding:6px 16px;border-radius:6px;display:inline-flex;align-items:center;gap:6px;">
+          ⬇ Download Image
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       AUTHENTICATION WALL / LOGIN
+  ════════════════════════════════════════════════════════ -->
+  <!-- ════════════════════════════════════════════════════════
+       AUTHENTICATION WALL & LOGIN (NUNNO SALES DESIGN)
+  ════════════════════════════════════════════════════════ -->
+  <div class="auth-overlay hidden" id="authOverlay" style="display:none;">
+    <div class="bg-grid"></div>
+
+    <main class="login-container" id="loginMainContainer">
+      <!-- HERO CHATLY ICON WITH MINT GLOW -->
+      <header class="brand-hero">
+        <div class="logo-frame" id="logoHeroFrame">
+          <img src="assets/images/chatly-icon.png" alt="Chatly" class="logo-img">
+        </div>
+        <h1 class="brand-title">
+          Chatly
+          <span class="brand-badge">Omni-Desk</span>
+        </h1>
+        <p class="brand-subtitle">Your WhatsApp workspace</p>
+      </header>
+
+      <!-- LOGIN CARD -->
+      <div class="login-card">
+        <div id="authAlert" class="auth-alert" role="alert"></div>
+
+        <form id="authForm" autocomplete="on" onsubmit="return false;">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label" for="authUsername">Work Username or Email</label>
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                id="authUsername" 
+                class="form-input" 
+                placeholder="admin or closer" 
+                required 
+                autofocus 
+                autocomplete="username"
+              >
+              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label class="form-label" for="authPassword">Password</label>
+            <div class="input-wrapper">
+              <input 
+                type="password" 
+                id="authPassword" 
+                class="form-input" 
+                placeholder="••••••••••••" 
+                required 
+                autocomplete="current-password"
+              >
+              <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="3"></rect>
+                <path d="M7 11V7a5 5 0 0110 0v4"></path>
+              </svg>
+              <button type="button" class="pwd-toggle" id="authTogglePass">SHOW</button>
+            </div>
+          </div>
+
+          <button type="submit" id="authSubmitBtn" class="submit-btn">
+            Sign In to Chatly
+          </button>
+
+          <div class="quick-fill-bar" style="display:flex;flex-direction:column;gap:6px;margin-top:14px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">1-Click Test Credentials:</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <button type="button" class="quick-fill-btn" id="quickFillAdminBtn">👑 Admin</button>
+              <button type="button" class="quick-fill-btn" id="quickFillMaleLeadBtn">👨 Ali (Male Team Lead)</button>
+              <button type="button" class="quick-fill-btn" id="quickFillFemaleLeadBtn">👩 Asima (Female Team Lead)</button>
+              <button type="button" class="quick-fill-btn" id="quickFillEmpBtn">💼 Askari</button>
+            </div>
+          </div>
+        </form>
+
+        <footer class="card-footer">
+          <div>🔒 <strong>Authorized Personnel Only.</strong> No public registration.</div>
+          <div class="footer-divider"></div>
+          <div>Single-Number Multi-Closer Architecture with Anti-Theft Lead Locking</div>
+        </footer>
+      </div>
+    </main>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL: ADMIN EMPLOYEE PROVISIONING & DIRECT LOGIN DESK
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="employeeModal">
+    <div class="modal-window" style="max-width: 1000px; width: 95vw; max-height: 92vh; display:flex; flex-direction:column; padding: 24px; border-radius: 18px;">
+      
+      <!-- Modal Header -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 16px; border-bottom: 1px solid var(--glass-border-subtle); padding-bottom: 14px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div style="width:46px; height:46px; border-radius:12px; background:linear-gradient(135deg, rgba(31, 224, 138,0.2), rgba(45, 232, 154,0.25)); border:1px solid rgba(45, 232, 154,0.4); display:flex; align-items:center; justify-content:center; font-size:22px;">
+            👥
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h2 style="font-size:18px; font-weight:800; color:var(--text-primary); margin:0;">Active Closer Team &amp; Login Desk</h2>
+              <span style="background:rgba(31, 224, 138,0.15); color:#4cecab; border:1px solid rgba(31, 224, 138,0.3); font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; text-transform:uppercase;">👑 Admin Portal</span>
+            </div>
+            <p style="font-size:12px; color:var(--text-secondary); margin:3px 0 0 0;">View closer login credentials, inspect WhatsApp links &amp; 1-click login directly into any employee's portal.</p>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="btn btn-emerald btn-sm" id="toggleAddEmpDrawerBtn" onclick="window.OmnideskToggleAddDrawer()" style="font-weight:700; padding:7px 14px; font-size:12px;">
+            <span id="addDrawerBtnText">➕ Add New Closer</span>
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" id="refreshTeamBtn" style="font-size:12px; padding:7px 12px;">
+            <span>🔄 Refresh</span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" id="closeTeamModalBtn" style="font-size:16px; padding:4px 10px;">✕</button>
+        </div>
+      </div>
+
+      <!-- Collapsible Add Closer Drawer -->
+      <div id="addEmpDrawer" style="display:none; background:var(--glass-surface-subtle); border:1px solid var(--glass-border-subtle); border-radius:14px; padding:18px; margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="font-size:13.5px; font-weight:800; margin:0; display:flex; align-items:center; gap:6px; color:var(--text-primary);">
+            <span>⚡ Provision New Sales Closer / Team Lead</span>
+          </h3>
+          <button type="button" class="btn btn-ghost btn-xs" onclick="window.OmnideskToggleAddDrawer()" style="font-size:11px;">✕ Hide Drawer</button>
+        </div>
+
+        <div class="auth-alert" id="createEmpAlert"></div>
+
+        <form id="createEmpForm" onsubmit="return false;" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; align-items:flex-end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:11px;">Full Name *</label>
+            <input type="text" id="newEmpName" class="form-input" placeholder="e.g. Bilal Ahmed" required>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:11px;">Username *</label>
+            <input type="text" id="newEmpUsername" class="form-input mono" placeholder="e.g. bilal_closer" required autocomplete="off">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label class="form-label" style="font-size:11px;">Initial Password *</label>
+              <button type="button" class="btn btn-ghost btn-xs" id="genEmpPassBtn" style="color:var(--cyan); font-size:10px; padding:0;">🎲 Gen</button>
+            </div>
+            <input type="text" id="newEmpPassword" class="form-input mono" placeholder="Min 6 chars" required autocomplete="off">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:11px;">Role &amp; Designation</label>
+            <select id="newEmpRole" class="form-select" style="font-size:12px;">
+              <option value="Team Member">📱 Closer Specialist (TM)</option>
+              <option value="Team Lead">👑 Team Lead (TL)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:11px;">Gender (VM Permission)</label>
+            <select id="newEmpGender" class="form-select" style="font-size:12px;">
+              <option value="male">👨 Male (VM Disabled)</option>
+              <option value="female" selected>👩 Female (VM Allowed)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:11px;">Email Address</label>
+            <input type="email" id="newEmpEmail" class="form-input" placeholder="bilal@gmail.com">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label" style="font-size:11px;">WhatsApp Phone</label>
+            <input type="text" id="newEmpPhone" class="form-input mono" placeholder="+923001234567">
+          </div>
+          <div>
+            <button type="submit" class="btn btn-wa btn-sm" id="submitNewEmpBtn" style="width:100%; height:38px; justify-content:center; font-weight:800;">
+              <span>Provision &amp; Activate</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Search & Role Filter Header -->
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+        <div style="position:relative; flex:1; min-width:240px; max-width:380px;">
+          <input type="text" id="rosterSearchInput" class="form-input" placeholder="🔍 Search closer by name, username or phone..." style="font-size:12px; padding:8px 12px; border-radius:8px;" oninput="window.OmnideskFilterRoster()">
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:11.5px; color:var(--text-muted); margin-right:4px;">Filter:</span>
+          <button type="button" class="roster-filter-btn active" data-filter="all" onclick="window.OmnideskSetRosterFilter('all')">All (<span id="countFilterAll">0</span>)</button>
+          <button type="button" class="roster-filter-btn" data-filter="lead" onclick="window.OmnideskSetRosterFilter('lead')">👑 Team Leads (<span id="countFilterTL">0</span>)</button>
+          <button type="button" class="roster-filter-btn" data-filter="member" onclick="window.OmnideskSetRosterFilter('member')">📱 Closers (<span id="countFilterTM">0</span>)</button>
+        </div>
+      </div>
+
+      <!-- Active Team Closers Roster List -->
+      <div class="emp-roster-list" id="teamRosterList" style="flex:1; max-height: 480px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 4px;">
+        <div class="text-xs text-muted" style="text-align:center; padding:32px;">Loading closer roster...</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL: CONFIRM PAYMENT / MARK PAID
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="markPaidModal">
+    <div class="modal-window" style="max-width:490px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:22px;">🛡️</span>
+          <div style="font-size:16px;font-weight:800;color:var(--text-primary);">Record Sale &amp; Submit for Verification</div>
+        </div>
+        <button class="btn btn-ghost btn-xs" id="closeMarkPaidModalBtn">✕</button>
+      </div>
+      <p class="text-xs text-muted" style="margin-bottom:16px;">Deal goes <strong style="color:#9ca3af;">⚪ Grey (In Review)</strong> first. Admin validates → turns <strong style="color:var(--emerald);">🟢 Green</strong> and credits your 10k target.</p>
+
+      <form id="markPaidForm" onsubmit="return false;" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Customer Name</label>
+          <input type="text" id="paidCustomerName" class="form-input" placeholder="Client Name" required>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Phone Number</label>
+          <input type="text" id="paidCustomerPhone" class="form-input mono" disabled style="opacity:0.8;">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Product / Package Sold</label>
+            <select id="paidPlanSelect" class="form-select">
+              <!-- Populated dynamically from company product catalog -->
+              <option value="Package Deal" data-amount="5000" data-commission="1500">📦 Package Deal (Rs. 5,000)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Confirmed Price (PKR)</label>
+            <input type="number" id="paidAmountInput" class="form-input mono" value="5000" required>
+          </div>
+        </div>
+        <div id="paidCommissionPreviewBox" style="background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:8px; padding:8px 12px; display:flex; align-items:center; justify-content:space-between; font-size:12px;">
+          <span style="color:#94a3b8; font-weight:600;">💰 Closer Commission on this Sale:</span>
+          <strong style="color:#38bdf8; font-size:13.5px;" id="paidCloserCommissionVal">Rs. 0</strong>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Payment Method</label>
+            <select id="paidMethodSelect" class="form-select">
+              <option value="EasyPaisa">💳 EasyPaisa</option>
+              <option value="JazzCash">📱 JazzCash</option>
+              <option value="Binance Pay (USDT)">🪙 Binance Pay</option>
+              <option value="Bank Transfer">🏦 Bank Transfer</option>
+              <option value="SadaPay / NayaPay">⚡ SadaPay / NayaPay</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Customer Email (Optional)</label>
+            <input type="email" id="paidCustomerEmail" class="form-input" placeholder="client@gmail.com">
+          </div>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Transaction ID / Ref (Optional)</label>
+          <input type="text" id="paidTrxId" class="form-input mono" placeholder="e.g. TID-984729104">
+        </div>
+        <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.18);border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;font-size:11.5px;">
+          <span style="color:var(--text-muted);">Attributed Closer:</span>
+          <span style="font-weight:700;color:var(--emerald);" id="paidCloserName">Closer Specialist</span>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn btn-ghost btn-sm" id="cancelMarkPaidBtn">Cancel</button>
+          <button type="submit" class="btn btn-paid btn-sm" id="confirmMarkPaidBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Submit Sale for Verification</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL: CAN'T HANDLE / RELEASE LEAD
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="cantHandleModal">
+    <div class="modal-window" style="max-width:440px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:20px;">🚫</span>
+          <div style="font-size:16px;font-weight:800;color:#fff;">Won't Handle This Lead?</div>
+        </div>
+        <button class="btn btn-ghost btn-xs" id="closeCantHandleModalBtn">✕</button>
+      </div>
+      <p class="text-xs text-muted" style="margin-bottom:16px;">Releasing changes status back to <strong style="color:var(--red);">🔴 Fresh (Red)</strong> — any other closer can immediately pick it up.</p>
+
+      <form id="cantHandleForm" onsubmit="return false;" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Client</label>
+          <div style="background:var(--bg-elevated);padding:8px 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:#fff;border:1px solid var(--border-soft);" id="cantHandleClientName">Zeeshan Tariq</div>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Reason for Handover</label>
+          <select id="cantHandleReasonSelect" class="form-select">
+            <option value="Language barrier / Speaks regional language">🗣️ Language barrier (Pashto/Sindhi)</option>
+            <option value="Price objection / Demanding higher discount">💰 Price objection / Higher discount</option>
+            <option value="Unresponsive after pitch / Needs fresh angle">⏳ Unresponsive / Needs fresh angle</option>
+            <option value="Demanding complex technical explanation">📈 Needs technical crypto explanation</option>
+            <option value="Too busy right now / Handing off to team">⏱️ Too busy right now</option>
+            <option value="Other objection">📝 Other reason</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Handover Note for Next Closer (Optional)</label>
+          <input type="text" id="cantHandleNote" class="form-input" placeholder="e.g. Offered 30% off, wants demo video">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button type="button" class="btn btn-ghost btn-sm" id="cancelCantHandleBtn">Cancel</button>
+          <button type="submit" class="btn btn-warning btn-sm" id="confirmCantHandleBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            <span>Release to Fresh (Red) Pool</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL: WITHDRAWAL REQUEST PORTAL
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="withdrawModal" style="display:none;">
+    <div class="modal-box withdraw-modal-box">
+      <div class="modal-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="modal-icon-badge" style="background:rgba(16,185,129,0.15);color:#10b981;">💳</div>
+          <div>
+            <h3 style="margin:0;font-size:16px;font-weight:800;">Request Payout</h3>
+            <span class="text-xs text-muted">Withdraw commission earnings directly to your account</span>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-xs" id="closeWithdrawModalBtn">✕</button>
+      </div>
+
+      <form id="withdrawRequestForm" class="withdraw-form" novalidate>
+        <!-- Balance Alert -->
+        <div class="withdraw-available-strip">
+          <span class="text-xs text-muted">Available to Withdraw:</span>
+          <strong class="withdraw-max-text">PKR <span id="modalWdAvailableBalance">0</span></strong>
+        </div>
+
+        <!-- Technical Error Alert Box -->
+        <div class="auth-alert auth-alert--error" id="wdTechnicalError" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;line-height:1.45;"></div>
+
+        <!-- 1. Amount -->
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label">Withdrawal Amount (PKR)</label>
+          <div class="input-with-prefix">
+            <span class="input-prefix">Rs.</span>
+            <input type="number" id="wdAmountInput" class="form-input mono" placeholder="Enter amount (e.g. 2,000)" step="100">
+          </div>
+          <!-- Quick Amount Chips -->
+          <div class="quick-amount-chips">
+            <button type="button" class="btn-amt-chip" data-amt="2000">Rs. 2,000</button>
+            <button type="button" class="btn-amt-chip" data-amt="5000">Rs. 5,000</button>
+            <button type="button" class="btn-amt-chip" data-amt="10000">Rs. 10,000</button>
+            <button type="button" class="btn-amt-chip" data-amt="all">Max Balance</button>
+          </div>
+        </div>
+
+        <!-- 2. Payout Channel Category -->
+        <div class="form-group">
+          <label class="form-label">Payout Channel</label>
+          <div class="payout-method-grid">
+            <label class="method-option active" data-channel="wallet">
+              <input type="radio" name="payoutMethod" value="Digital Wallet" checked>
+              <span class="method-card">
+                <span class="method-icon">📱</span>
+                <span class="method-name">Digital Wallet</span>
+              </span>
+            </label>
+            <label class="method-option" data-channel="bank">
+              <input type="radio" name="payoutMethod" value="Bank Account">
+              <span class="method-card">
+                <span class="method-icon">🏦</span>
+                <span class="method-name">Pakistani Bank</span>
+              </span>
+            </label>
+            <label class="method-option" data-channel="crypto">
+              <input type="radio" name="payoutMethod" value="USDT (TRC20)">
+              <span class="method-card">
+                <span class="method-icon">💎</span>
+                <span class="method-name">USDT</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. Wallet / Bank Institution Select -->
+        <div class="form-group" id="wdInstitutionGroup">
+          <label class="form-label" id="wdInstitutionLabel">Select Digital Wallet</label>
+          <select id="wdInstitutionSelect" class="form-select" required>
+            <optgroup label="📱 Pakistani Digital Wallets" id="optGroupWallets">
+              <option value="EasyPaisa" selected>EasyPaisa (Telenor Microfinance)</option>
+              <option value="JazzCash">JazzCash (Mobilink Microfinance)</option>
+              <option value="SadaPay">SadaPay (Mastercard Wallet)</option>
+              <option value="NayaPay">NayaPay (Visa Wallet)</option>
+              <option value="UPaisa">UPaisa (U Microfinance Bank)</option>
+              <option value="Zindigi">Zindigi (JS Bank Digital)</option>
+            </optgroup>
+            <optgroup label="🏦 Pakistani Commercial Banks" id="optGroupBanks" style="display:none;">
+              <option value="Meezan Bank">Meezan Bank Limited (Islamic)</option>
+              <option value="HBL">HBL — Habib Bank Limited</option>
+              <option value="UBL">UBL — United Bank Limited</option>
+              <option value="MCB Bank">MCB Bank Limited</option>
+              <option value="Bank Alfalah">Bank Alfalah Limited</option>
+              <option value="Allied Bank">Allied Bank Limited (ABL)</option>
+              <option value="Faysal Bank">Faysal Bank Limited</option>
+              <option value="Askari Bank">Askari Bank Limited</option>
+              <option value="Standard Chartered">Standard Chartered Pakistan</option>
+              <option value="Bank of Punjab">Bank of Punjab (BOP)</option>
+              <option value="Dubai Islamic Bank">Dubai Islamic Bank (DIB)</option>
+              <option value="JS Bank">JS Bank Limited</option>
+              <option value="Soneri Bank">Soneri Bank Limited</option>
+              <option value="Habib Metro Bank">Habib Metropolitan Bank</option>
+              <option value="Bank Al Habib">Bank AL Habib Limited</option>
+              <option value="Al Baraka Bank">Al Baraka Islamic Bank</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- 4. Account Title -->
+        <div class="form-group">
+          <label class="form-label" id="wdTitleLabel">Account Title / Beneficiary Name</label>
+          <input type="text" id="wdAccountTitleInput" class="form-input" placeholder="e.g. Ali Raza" required>
+        </div>
+
+        <!-- 5. Account Number / Mobile Number / IBAN -->
+        <div class="form-group">
+          <label class="form-label" id="wdNumberLabel">Wallet Mobile Number (11 or 12 Digits)</label>
+          <input type="text" id="wdAccountNumberInput" class="form-input mono" placeholder="e.g. 03081234567 or +923081234567" required autocomplete="off">
+          <small id="wdNumberHint" style="display:block;font-size:10.5px;color:var(--text-muted);margin-top:3px;">
+            Enter 11 digits starting with 0 (e.g. 03081234567) or 12 digits with +92 (e.g. +923081234567).
+          </small>
+        </div>
+
+        <!-- 6. Branch City / Code (Bank only) -->
+        <div class="form-group" id="wdBranchCityGroup" style="display:none;">
+          <label class="form-label">Branch City / Branch Code (Optional)</label>
+          <input type="text" id="wdBranchCityInput" class="form-input" placeholder="e.g. Lahore / 0214">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Remarks / Note (Optional)</label>
+          <input type="text" id="wdNoteInput" class="form-input" placeholder="e.g. Commission payout">
+        </div>
+
+        <!-- 24-Hour Settlement Guarantee Banner -->
+        <div class="wd-escrow-banner">
+          <span style="font-size:22px;line-height:1;">⏳</span>
+          <div style="flex:1;">
+            <div style="font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+              <span>Guaranteed 24-Hour Settlement</span>
+              <span class="badge-role-admin" style="font-size:9px;background:rgba(16,185,129,0.15);color:#10b981;border-color:rgba(16,185,129,0.35);">Fast Payout</span>
+            </div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">
+              Your requested funds are audited &amp; disbursed directly to your account within 24 hours.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding-top:14px;">
+          <button type="button" class="btn btn-ghost" id="cancelWithdrawBtn">Cancel</button>
+          <button type="submit" class="btn btn-wa" id="submitWithdrawBtn" style="padding:10px 22px;">
+            <span>Submit Withdrawal Request</span>
+            <span>→</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL: ADMIN VERIFY PAID DEALS & RELEASE COMMISSIONS
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="verifyDealsModal">
+    <div class="emp-modal-box" style="max-width:920px;">
+      <div class="emp-modal-header">
+        <div class="emp-modal-title-group">
+          <div class="emp-modal-icon" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.3); color:#fbbf24;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:17px; font-weight:800; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+              <span>Marked Paid Deals &amp; Commission Release</span>
+              <span class="badge-role-admin" id="modalPendingDealsCountBadge" style="background:#ef4444; color:#fff;">0 Pending</span>
+            </div>
+            <div class="text-xs text-muted">Audit submitted payments before approving deals won and releasing closer commissions to their wallet</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-xs" id="closeVerifyDealsModalBtn">✕</button>
+      </div>
+
+      <div style="padding:20px 24px; max-height:550px; overflow-y:auto;">
+        <div id="verifyDealsListContainer" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL: PERFORMANCE PORTAL & LEADERBOARD
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="scoreModal">
+    <div class="emp-modal-box" style="max-width:920px;">
+      <div class="emp-modal-header">
+        <div class="emp-modal-title-group">
+          <div class="emp-modal-icon" style="background:rgba(234,179,8,0.1);border-color:rgba(234,179,8,0.25);color:#fbbf24;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          </div>
+          <div>
+            <div style="font-size:17px;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+              <span id="scoreModalTitle">Performance & Score Center</span>
+              <span class="badge-role-admin" id="scoreModalBadge">KPI Tracker</span>
+            </div>
+            <div class="text-xs text-muted">Real-time revenue metrics, deals won, and personal sales and commission metrics</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-xs" id="closeScoreModalBtn">✕</button>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:6px;padding:12px 24px;border-bottom:1px solid var(--border-subtle);background:rgba(0,0,0,0.15);overflow-x:auto;">
+        <button type="button" class="nav-tab-btn active" id="tabMyScore" style="padding:6px 14px;font-size:12px;">👤 My Score & Deals</button>
+        <button type="button" class="nav-tab-btn" id="tabVerifySales" style="padding:6px 14px;font-size:12px;">
+          🛡️ Verify Transactions (<span id="pendingVerifCount">0</span>)
+        </button>
+      </div>
+
+      <div class="emp-modal-body" style="grid-template-columns:1fr;padding:20px 24px;">
+
+        <!-- TAB 1: My Score -->
+        <div id="viewMyScoreTab">
+          <div class="perf-hero-card">
+            <div class="perf-hero-left">
+              <div class="perf-hero-avatar" id="perfHeroAvatar">👤</div>
+              <div>
+                <div class="perf-hero-name" id="perfHeroName">Closer Specialist</div>
+                <div class="perf-hero-role" id="perfHeroRole">Team Member &bull; EMP-101</div>
+              </div>
+            </div>
+            <div class="perf-tier-badge" id="perfTierBadge">👤 Team Member</div>
+          </div>
+
+          <!-- Quick Pipeline Overview Strip -->
+          <div class="score-pipeline-strip">
+            <div class="score-pipe-item pipe-ongoing">
+              <span class="score-pipe-label">🟡 Ongoing Leads</span>
+              <strong class="score-pipe-val" id="scoreOngoingCount">0</strong>
+            </div>
+            <div class="score-pipe-item pipe-closed">
+              <span class="score-pipe-label">🟢 Total Closed</span>
+              <strong class="score-pipe-val" id="scoreClosedCount">0</strong>
+            </div>
+            <div class="score-pipe-item pipe-wontpay">
+              <span class="score-pipe-label">🔴 Won't Pay</span>
+              <strong class="score-pipe-val" id="scoreWontPayCount">0</strong>
+            </div>
+            <div class="score-pipe-item pipe-review">
+              <span class="score-pipe-label">🟣 In Review</span>
+              <strong class="score-pipe-val" id="scoreInReviewCount">0</strong>
+            </div>
+            <div class="score-pipe-item pipe-paid">
+              <span class="score-pipe-label">💎 Total Paid</span>
+              <strong class="score-pipe-val" id="scorePaidCount">0</strong>
+            </div>
+          </div>
+
+          <div class="salary-milestone-card">
+            <div class="milestone-header">
+              <div>
+                <div class="milestone-title">🎯 Your First Rs. 10,000 Is Paid In Full</div>
+                <div class="milestone-sub">Sell Rs. 10,000 and earn Rs. 10,000. After that: Rs. 700 on 1,700 · Rs. 2,000 on 5,000 · Rs. 10,000 on 15,000.</div>
+              </div>
+              <div class="milestone-status-badge" id="milestoneStatusBadge">
+                <span id="targetBadgeIcon">⏳</span> <span id="targetBadgeText">In Progress</span>
+              </div>
+            </div>
+            <div class="taskbar-container">
+              <div class="taskbar-track">
+                <div class="taskbar-fill" id="taskbarFill" style="width:0%;"></div>
+              </div>
+              <div class="taskbar-meta">
+                <span class="mono" id="taskbarCurrent">Rs. 0</span>
+                <span class="mono" id="taskbarPct">0% Completed</span>
+                <span class="mono" id="taskbarGoal">Target: Rs. 10,000</span>
+              </div>
+            </div>
+            <div class="milestone-feedback" id="milestoneFeedback">Every rupee of your first Rs. 10,000 in verified sales is yours.</div>
+          </div>
+
+          <div class="score-cards-grid">
+            <div class="score-card salary-card">
+              <span class="score-card-label">First Rs. 10,000 (100%)</span>
+              <span class="score-card-value" id="myBaseSalary">Rs. 0</span>
+              <span class="score-card-sub" id="myBaseSalarySub">Paid 100% on your first Rs. 10,000</span>
+            </div>
+            <div class="score-card comm-card">
+              <span class="score-card-label">Task Commissions</span>
+              <span class="score-card-value" id="myCommissionsEarned">Rs. 0</span>
+              <span class="score-card-sub">From post-target sales</span>
+            </div>
+            <div class="score-card payout-card">
+              <span class="score-card-label">Total Take-Home</span>
+              <span class="score-card-value" id="myTotalPayout">Rs. 0</span>
+              <span class="score-card-sub">Base + Commissions</span>
+            </div>
+            <div class="score-card sales-card">
+              <span class="score-card-label">Total Sales Closed</span>
+              <span class="score-card-value" id="myTotalRevenue">Rs. 0</span>
+              <span class="score-card-sub" id="myDealsWonSub">0 Verified Deals</span>
+            </div>
+          </div>
+
+          <div class="comm-schedule-card">
+            <div class="comm-schedule-title">💼 Post-Target Commission Schedule (Activates after 10k target)</div>
+            <div class="comm-schedule-grid">
+              <div class="comm-tier-box">
+                <span class="comm-tier-plan">⚡ Starter Plan</span>
+                <span class="comm-tier-sale">Sale: Rs. 1,700</span>
+                <span class="comm-tier-earn">→ Rs. 700 Commission</span>
+              </div>
+              <div class="comm-tier-box">
+                <span class="comm-tier-plan">💎 Pro Plan</span>
+                <span class="comm-tier-sale">Sale: Rs. 5,000</span>
+                <span class="comm-tier-earn">→ Rs. 2,000 Commission</span>
+              </div>
+              <div class="comm-tier-box">
+                <span class="comm-tier-plan">🐋 Whale VIP</span>
+                <span class="comm-tier-sale">Sale: Rs. 15,000</span>
+                <span class="comm-tier-earn">→ Rs. 10,000 Commission</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="perf-section-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <h4 style="margin:0;font-size:13.5px;color:#fff;font-weight:700;">Deals & Commission Ledger</h4>
+              <span class="text-xs text-muted" id="myDealsCountLabel">0 Closed</span>
+            </div>
+            <div id="myDealsList" class="perf-deals-table"></div>
+          </div>
+        </div>
+        <!-- Verify Transactions -->
+        <div id="viewVerifySalesTab" style="display:none;">
+          <div class="perf-hero-card" style="margin-bottom:16px;">
+            <div class="perf-hero-left">
+              <div class="perf-hero-avatar" style="background:rgba(30,41,59,0.8);border-color:var(--cyan);color:var(--cyan);">🛡️</div>
+              <div>
+                <div class="perf-hero-name">Anti-Fraud Transaction Audit Portal</div>
+                <div class="perf-hero-role">Audit submitted payments before confirming deals & commissions</div>
+              </div>
+            </div>
+            <div class="perf-tier-badge" style="background:rgba(0,212,170,0.06);border-color:rgba(0,212,170,0.2);color:var(--cyan);">
+              <span id="pendingAuditHeaderCount">0 Pending</span>
+            </div>
+          </div>
+          <div id="verifySalesList" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       MODAL: ADMIN EMAIL COMMUNICATIONS STUDIO
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="adminEmailModal">
+    <div class="emp-modal-box" style="max-width:1040px;">
+      <div class="emp-modal-header">
+        <div class="emp-modal-title-group">
+          <div class="emp-modal-icon" style="background:rgba(31, 224, 138,0.12);border-color:rgba(31, 224, 138,0.3);color:#0fa968;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div>
+            <div class="emp-modal-title">
+              <span>Admin Email &amp; Communications Studio</span>
+              <span class="badge-role-admin" style="background:rgba(31, 224, 138,0.15);color:#0fa968;border-color:rgba(31, 224, 138,0.3);">Dispatch Hub</span>
+            </div>
+            <div class="text-xs text-muted">Dispatch targeted credentials, 24-hour payout confirmations, status alerts &amp; team directives.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <a href="email_hub.php" target="_blank" class="btn btn-ghost btn-xs" style="color:var(--accent-brand);font-weight:700;text-decoration:none;" title="Open in new standalone tab">
+            ↗ Standalone Page
+          </a>
+          <button class="btn btn-ghost btn-xs" id="closeEmailModalBtn">✕</button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div style="display:flex;gap:6px;padding:10px 24px;border-bottom:1px solid var(--border-subtle);background:rgba(0,0,0,0.12);overflow-x:auto;">
+        <button type="button" class="nav-tab-btn active" id="tabEmailComposeBtn" style="padding:6px 14px;font-size:12px;">✍️ Compose &amp; Send</button>
+        <button type="button" class="nav-tab-btn" id="tabEmailLogsBtn" style="padding:6px 14px;font-size:12px;">📜 Sent History &amp; Logs</button>
+        <button type="button" class="nav-tab-btn" id="tabEmailSettingsBtn" style="padding:6px 14px;font-size:12px;">⚙️ Mailer Settings</button>
+      </div>
+
+      <!-- TAB 1: COMPOSE & SEND -->
+      <div id="viewEmailCompose" class="emp-modal-body" style="grid-template-columns:1.1fr 1fr;gap:20px;padding:20px 24px;">
+        <!-- Left: Form -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="auth-alert" id="modalEmailAlert" style="display:none;margin:0;"></div>
+
+          <form id="modalEmailForm" onsubmit="return false;" style="display:flex;flex-direction:column;gap:11px;">
+            <!-- 1. Target Audience -->
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-weight:700;">1. Target Audience</label>
+              <select id="modalEmailTargetType" class="form-select">
+                <option value="user" selected>🎯 Target Single Employee</option>
+                <option value="all">📢 All Active Employees &amp; Closers (Broadcast)</option>
+                <option value="role_lead">⚡ All Team Leads Only</option>
+                <option value="role_member">👤 All Closers / Members Only</option>
+                <option value="custom">✉️ Custom External Email Address</option>
+              </select>
+            </div>
+
+            <!-- Single User Select -->
+            <div class="form-group" id="modalEmailUserGroup" style="margin:0;">
+              <label class="form-label">Select Target Closer</label>
+              <select id="modalEmailUserSelect" class="form-select"></select>
+            </div>
+
+            <!-- Custom Email Group -->
+            <div id="modalEmailCustomGroup" style="display:none;flex-direction:column;gap:8px;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Target Email Address</label>
+                <input type="email" id="modalEmailCustomAddress" class="form-input" placeholder="e.g. employee@gmail.com">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Recipient Name</label>
+                <input type="text" id="modalEmailCustomName" class="form-input" placeholder="e.g. Usman Ali">
+              </div>
+            </div>
+
+            <!-- 2. Template Preset -->
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-weight:700;">2. Email Template Preset</label>
+              <select id="modalEmailTemplateSelect" class="form-select"></select>
+            </div>
+
+            <!-- Placeholders -->
+            <div>
+              <label class="form-label" style="font-size:10.5px;color:var(--text-muted);margin-bottom:4px;">Dynamic Placeholders (Click to insert):</label>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;" id="modalEmailChips">
+                <span class="btn-amt-chip" data-var="{name}" style="padding:2px 7px;font-size:10.5px;">{name}</span>
+                <span class="btn-amt-chip" data-var="{username}" style="padding:2px 7px;font-size:10.5px;">{username}</span>
+                <span class="btn-amt-chip" data-var="{email}" style="padding:2px 7px;font-size:10.5px;">{email}</span>
+                <span class="btn-amt-chip" data-var="{role}" style="padding:2px 7px;font-size:10.5px;">{role}</span>
+                <span class="btn-amt-chip" data-var="{amount}" style="padding:2px 7px;font-size:10.5px;">{amount}</span>
+                <span class="btn-amt-chip" data-var="{method}" style="padding:2px 7px;font-size:10.5px;">{method}</span>
+                <span class="btn-amt-chip" data-var="{date}" style="padding:2px 7px;font-size:10.5px;">{date}</span>
+                <span class="btn-amt-chip" data-var="{portal_url}" style="padding:2px 7px;font-size:10.5px;">{portal_url}</span>
+              </div>
+            </div>
+
+            <!-- Subject -->
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-weight:700;">3. Subject Line</label>
+              <input type="text" id="modalEmailSubject" class="form-input" placeholder="Enter email subject" required>
+            </div>
+
+            <!-- Tag / Badge -->
+            <div class="form-group" style="margin:0;">
+              <label class="form-label" style="font-weight:700;">4. Header Tag Badge</label>
+              <input type="text" id="modalEmailBadge" class="form-input" value="Notice">
+            </div>
+
+            <!-- Body Content (Normal Editable Text) -->
+            <div class="form-group" style="margin:0;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <label class="form-label" style="font-weight:700;margin:0;">5. Email Message (Normal Editable Text)</label>
+                <span style="font-size:10.5px;color:var(--accent-brand);font-weight:700;">✨ Auto-styled into branded card</span>
+              </div>
+              <div style="display:flex;gap:4px;margin-bottom:6px;">
+                <button type="button" class="btn btn-ghost btn-xs" id="insertBulletBtn" style="padding:2px 8px;font-size:11px;font-weight:600;" title="Insert bullet row">• Bullet Detail</button>
+                <button type="button" class="btn btn-ghost btn-xs" id="insertDetailRowBtn" style="padding:2px 8px;font-size:11px;font-weight:600;" title="Insert key-value row">🔑 Label: Value</button>
+                <button type="button" class="btn btn-ghost btn-xs" id="clearEmailBodyBtn" style="padding:2px 8px;font-size:11px;color:#ef4444;" title="Clear text box">🧹 Clear</button>
+              </div>
+              <textarea id="modalEmailBody" class="form-input" rows="7" style="font-size:13px;line-height:1.6;font-family:inherit;resize:vertical;padding:10px 12px;" placeholder="Type your email message here in normal text... No HTML tags needed."></textarea>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:3px;">💡 Type normal text and use <code>•</code> for bullet details. Everything formats automatically into the email preview!</div>
+            </div>
+
+            <button type="submit" class="btn btn-wa" id="modalEmailSendBtn" style="padding:11px;font-weight:800;justify-content:center;margin-top:4px;">
+              <span>✉️ Dispatch Email Now</span>
+              <span>&rarr;</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Live Preview -->
+        <div style="display:flex;flex-direction:column;min-height:480px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <strong style="font-size:13px;color:var(--text-primary);">Live Responsive Email Preview</strong>
+            <span style="font-size:10.5px;color:var(--text-muted);">Real-time HTML</span>
+          </div>
+          <div style="flex:1;background:#fff;border:1px solid var(--border-subtle);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-card);">
+            <iframe id="modalEmailPreviewIframe" style="width:100%;height:100%;min-height:460px;border:none;"></iframe>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: SENT HISTORY & LOGS -->
+      <div id="viewEmailLogs" style="display:none;padding:20px 24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <span style="font-size:13px;font-weight:700;color:var(--text-primary);">Dispatched Email Audit Trail</span>
+          <button type="button" class="btn btn-ghost btn-xs" id="modalRefreshEmailLogsBtn">🔄 Refresh Logs</button>
+        </div>
+        <div style="max-height:440px;overflow-y:auto;border:1px solid var(--border-subtle);border-radius:10px;">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;">
+            <thead>
+              <tr style="background:var(--glass-surface-subtle);border-bottom:1px solid var(--border-subtle);text-align:left;">
+                <th style="padding:8px 12px;font-size:10.5px;color:var(--text-muted);text-transform:uppercase;">ID</th>
+                <th style="padding:8px 12px;font-size:10.5px;color:var(--text-muted);text-transform:uppercase;">Recipient</th>
+                <th style="padding:8px 12px;font-size:10.5px;color:var(--text-muted);text-transform:uppercase;">Subject</th>
+                <th style="padding:8px 12px;font-size:10.5px;color:var(--text-muted);text-transform:uppercase;">Template</th>
+                <th style="padding:8px 12px;font-size:10.5px;color:var(--text-muted);text-transform:uppercase;">Timestamp</th>
+                <th style="padding:8px 12px;font-size:10.5px;color:var(--text-muted);text-transform:uppercase;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="modalEmailLogsTbody">
+              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Loading logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 3: MAILER SETTINGS -->
+      <div id="viewEmailSettings" style="display:none;padding:20px 24px;max-width:600px;margin:0 auto;">
+        <div class="auth-alert" id="modalEmailSettingsAlert" style="display:none;margin-bottom:12px;"></div>
+        <form id="modalEmailSettingsForm" onsubmit="return false;" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Transport</label>
+            <select id="modalEmailTransport" class="form-select">
+              <option value="mail" selected>PHP Native Mailer (cPanel Recommended)</option>
+              <option value="smtp">Custom SMTP Server</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Sender Display Name</label>
+            <input type="text" id="modalEmailSenderName" class="form-input" value="OmniDesk Administration">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Sender Email Address</label>
+            <input type="email" id="modalEmailSenderAddress" class="form-input" value="numeniousnexus@gmail.com">
+            <span style="font-size:10.5px;color:var(--text-muted);margin-top:2px;">Emails will be dispatched with From: <strong>numeniousnexus@gmail.com</strong></span>
+          </div>
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Reply-To Address</label>
+            <input type="email" id="modalEmailReplyTo" class="form-input" value="numeniousnexus@gmail.com">
+          </div>
+          <div id="modalEmailSmtpFields" style="display:none;flex-direction:column;gap:10px;padding:12px;background:var(--glass-surface-subtle);border-radius:10px;border:1px solid var(--border-subtle);">
+            <div style="font-size:11px;font-weight:700;color:var(--accent-brand);">Google / Gmail SMTP Configuration</div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">SMTP Host</label>
+              <input type="text" id="modalEmailSmtpHost" class="form-input" value="smtp.gmail.com">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Port</label>
+                <input type="number" id="modalEmailSmtpPort" class="form-input" value="465">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label class="form-label">Security</label>
+                <select id="modalEmailSmtpSecure" class="form-select">
+                  <option value="ssl" selected>SSL (Port 465)</option>
+                  <option value="tls">TLS (Port 587)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Gmail Address / Username</label>
+              <input type="text" id="modalEmailSmtpUser" class="form-input" value="numeniousnexus@gmail.com">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Google App Password (16-characters)</label>
+              <input type="password" id="modalEmailSmtpPass" class="form-input" placeholder="Google Account > Security > App Passwords">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-wa" id="modalEmailSaveSettingsBtn" style="padding:10px;font-weight:700;margin-top:6px;">
+            Save Mailer Settings
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       LOCKOUT OVERLAY: ACCOUNT SUSPENDED
+  ════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay account-suspended-overlay" id="accountSuspendedOverlay" style="display:none;z-index:999999;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);background:rgba(15,23,42,0.92);align-items:center;justify-content:center;">
+    <div class="emp-modal-box suspended-lockout-box" style="max-width:480px;text-align:center;padding:36px 28px;border:1px solid rgba(239,68,68,0.4);box-shadow:0 25px 60px -15px rgba(239,68,68,0.35);background:var(--glass-surface);">
+      <div class="suspended-shield-icon" style="width:72px;height:72px;margin:0 auto 18px;border-radius:24px;background:rgba(239,68,68,0.12);border:2px solid rgba(239,68,68,0.35);display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 0 30px rgba(239,68,68,0.3);">
+        🚫
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:4px 12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:12px;">
+        Account Suspended
+      </div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--text-primary);margin:0 0 8px;">Access Suspended</h2>
+      <p style="font-size:13px;color:var(--text-secondary);line-height:1.55;margin:0 0 20px;">
+        Your OmniDesk closer workspace has been suspended by the System Administrator. All messaging capabilities, lead actions, and withdrawals are locked.
+      </p>
+      <div style="background:var(--glass-surface-subtle);border:1px solid var(--glass-border-subtle);border-radius:12px;padding:14px 16px;text-align:left;margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:11px;color:var(--text-muted);font-weight:600;">Account Name:</span>
+          <strong style="font-size:12px;color:var(--text-primary);" id="suspendedEmpName">--</strong>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:11px;color:var(--text-muted);font-weight:600;">Username:</span>
+          <span style="font-size:11.5px;font-family:var(--font-mono);color:var(--accent-brand);" id="suspendedEmpUsername">--</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--text-muted);font-weight:600;">Status:</span>
+          <span class="emp-status-badge suspended">🔴 Suspended by Admin</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button type="button" class="btn btn-ghost" id="suspendedLogoutBtn" style="width:100%;padding:11px;font-weight:700;border-radius:10px;border:1px solid var(--border-subtle);">
+          Sign Out / Switch Account
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       TEAM LEADER (TL) PROVISIONING & COMMISSION MODAL
+  ════════════════════════════════════════════════════════ -->
+  <div class="emp-modal-overlay" id="tlProvisionModal" style="display:none;" aria-hidden="true">
+    <div class="emp-modal-card" style="max-width: 580px; background:var(--bg-card); border:1px solid var(--border-glow); border-radius:20px; box-shadow:0 25px 60px rgba(0,0,0,0.7);">
+      <div class="emp-modal-header" style="display:flex; align-items:center; justify-content:space-between; padding:18px 24px; border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:10px; background:rgba(16,185,129,0.2); color:#34d399; display:flex; align-items:center; justify-content:center; font-size:18px;">👑</div>
+          <div>
+            <h3 style="font-size:16px; font-weight:800; color:var(--text-main);">Team Leader Command</h3>
+            <p style="font-size:12px; color:var(--text-muted);">Provision Team Members & Earn Rs. 500 Commission</p>
+          </div>
+        </div>
+        <button class="emp-modal-close" id="closeTlModalBtn" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">&times;</button>
+      </div>
+
+      <div style="padding:20px 24px;">
+        <!-- TL Stats Banner -->
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-radius:14px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); margin-bottom:20px;">
+          <div>
+            <div style="font-size:11px; text-transform:uppercase; font-weight:700; color:#34d399; letter-spacing:0.04em;">Accrued Commission Balance</div>
+            <div style="font-size:24px; font-weight:900; color:#10b981; margin-top:2px;">PKR <span id="modalTlBalance">0</span></div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:11px; color:var(--text-muted);">Direct TMs Recruited</div>
+            <div style="font-size:18px; font-weight:800; color:var(--text-main); margin-top:2px;"><span id="modalTlTmCount">0</span> TMs</div>
+          </div>
+        </div>
+
+        <!-- Provision TM Form -->
+        <form id="tlProvisionForm">
+          <div style="font-size:13px; font-weight:700; color:var(--text-main); margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            <span>➕</span> Recruit New Team Member (TM)
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div>
+              <label style="display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">TM Full Name *</label>
+              <input type="text" id="tlTmName" class="form-input" placeholder="e.g. Usman Ali" required style="width:100%; padding:9px 12px; font-size:13px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-card); color:var(--text-main);">
+            </div>
+            <div>
+              <label style="display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">Username *</label>
+              <input type="text" id="tlTmUsername" class="form-input" placeholder="e.g. usman" required style="width:100%; padding:9px 12px; font-size:13px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-card); color:var(--text-main);">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+            <div>
+              <label style="display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">Initial Password *</label>
+              <input type="text" id="tlTmPassword" class="form-input" placeholder="Min 6 chars" required style="width:100%; padding:9px 12px; font-size:13px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-card); color:var(--text-main);">
+            </div>
+            <div>
+              <label style="display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">Gender (Closer Voice Notes)</label>
+              <select id="tlTmGender" class="form-input" style="width:100%; padding:9px 12px; font-size:13px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-card); color:var(--text-main);">
+                <option value="female">Female (Voice Recording Allowed)</option>
+                <option value="male">Male (Text Only Policy)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-bottom:14px;">
+            <label style="display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:4px;">WhatsApp Number (Optional)</label>
+            <input type="text" id="tlTmPhone" class="form-input" placeholder="+923001234567" style="width:100%; padding:9px 12px; font-size:13px; border-radius:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border-card); color:var(--text-main);">
+          </div>
+
+          <div style="padding:10px 14px; border-radius:10px; background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.25); font-size:12px; color:#fbbf24; margin-bottom:16px; line-height:1.4;">
+            ⚠️ <strong>Plan Purchase Requirement:</strong> Once registered, this TM must activate Nunno's 1,700 PKR Plan before accessing leads. You will receive <strong>500 PKR commission</strong> credited to your balance immediately!
+          </div>
+
+          <button type="submit" id="tlSubmitBtnForm" class="btn btn-primary" style="width:100%; background:linear-gradient(135deg, #10b981, #059669); font-size:13px; padding:11px; justify-content:center; font-weight:700; border-radius:10px; border:none; color:#fff; cursor:pointer;">
+            Register TM & Claim Rs. 500 Commission 🚀
+          </button>
+        </form>
+
+        <!-- Recruited TMs List -->
+        <div style="margin-top:24px; border-top:1px solid rgba(255,255,255,0.06); padding-top:16px;">
+          <div style="font-size:13px; font-weight:700; margin-bottom:10px;">📋 Your Recruited Team Members</div>
+          <div id="tlTmListContainer" style="max-height:160px; overflow-y:auto; font-size:12px;">
+            <div style="padding:10px; text-align:center; color:var(--text-muted);">Loading your team roster...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastMsg">Ready</span>
+  </div>
+
+  <script src="assets/js/offline-preview.js?v=14.0"></script>
+  <script src="assets/js/live-inbox.js?v=14.1"></script>
+  <script src="assets/js/wa-widget.js?v=1"></script>
+  <script src="assets/js/whatsapp-app.js?v=14.1"></script>
+</body>
+</html>

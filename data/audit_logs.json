@@ -1,0 +1,65 @@
+[
+  {
+    "id": "AUDIT-001",
+    "timestamp": "2026-11-18 17:30:00",
+    "company_id": "COMP-001",
+    "actor_id": "USR-SADMIN-01",
+    "actor_name": "Super Administrator",
+    "action": "system_bootstrap",
+    "details": "Platform upgraded to multi-company SaaS architecture with per-user WhatsApp sessions, TL commissions, and employee message limiters."
+  },
+  {
+    "id": "AUDIT-1795266024278",
+    "timestamp": "2026-11-21 13:00:24",
+    "company_id": "COMP-001",
+    "actor_id": "EMP-TM-1795266024277",
+    "actor_name": "Bilal Khan",
+    "action": "tm_applied",
+    "details": "Bilal Khan (@bilal_closer_1795266024186) applied to join Nunno Official as Closer. Status: On Hold."
+  },
+  {
+    "id": "AUDIT-1795266024296",
+    "timestamp": "2026-11-21 13:00:24",
+    "company_id": "COMP-001",
+    "actor_id": "closer_1795257421557",
+    "actor_name": "Mujtaba",
+    "action": "tm_approved",
+    "details": "Closer Bilal Khan (@bilal_closer_1795266024186) approved and activated with 200 daily message quota."
+  },
+  {
+    "id": "AUDIT-1795266350513",
+    "timestamp": "2026-11-21 13:05:50",
+    "company_id": "COMP-001",
+    "actor_id": "EMP-TM-1795266350511",
+    "actor_name": "Bilal Khan",
+    "action": "tm_applied",
+    "details": "Bilal Khan (@bilal_closer_1795266350426) applied to join Nunno Official as Closer. Status: On Hold."
+  },
+  {
+    "id": "AUDIT-1795266350527",
+    "timestamp": "2026-11-21 13:05:50",
+    "company_id": "COMP-001",
+    "actor_id": "EMP-TM-1795266024277",
+    "actor_name": "Bilal Khan",
+    "action": "tm_approved",
+    "details": "Closer Bilal Khan (@bilal_closer_1795266350426) approved and activated with 200 daily message quota."
+  },
+  {
+    "id": "AUDIT-1795266371389",
+    "timestamp": "2026-11-21 13:06:11",
+    "company_id": "COMP-001",
+    "actor_id": "EMP-TM-1795266371387",
+    "actor_name": "Tariq Mehmood",
+    "action": "tm_applied",
+    "details": "Tariq Mehmood (@closer_1795266371316) applied to join Nunno Official as Closer. Status: On Hold."
+  },
+  {
+    "id": "AUDIT-1795266371404",
+    "timestamp": "2026-11-21 13:06:11",
+    "company_id": "COMP-001",
+    "actor_id": "EMP-TM-1795266024277",
+    "actor_name": "Bilal Khan",
+    "action": "tm_approved",
+    "details": "Closer Tariq Mehmood (@closer_1795266371316) approved and activated with 250 daily message quota."
+  }
+]

@@ -1,0 +1,2722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Chatly Super Admin — Platform Owner Command Center</title>
+  <link rel="icon" type="image/png" href="assets/images/chatly-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script>
+    (function(){
+      try {
+        if (localStorage.getItem('nunno_theme') === 'light') {
+          document.documentElement.classList.add('theme-light');
+        }
+      } catch(_) {}
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-base: #050b09;
+      --bg-surface: #09130f;
+      --bg-surface-elevated: #0d1c16;
+      --border-subtle: rgba(31, 224, 138, 0.11);
+      --border-accent: rgba(234, 179, 8, 0.4);
+      --border-glow: rgba(234, 179, 8, 0.6);
+      --text-main: #effff7;
+      --text-secondary: #8db5a3;
+      --text-muted: #5c8070;
+      --accent-gold: #eab308;
+      --accent-purple: #2dd4bf;
+      --accent-emerald: #1fe08a;
+      --accent-rose: #f43f5e;
+      --accent-blue: #3b82f6;
+    }
+
+    html.theme-light {
+      --bg-base: #f0faf5;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #e9f7f0;
+      --border-subtle: #cfe8dc;
+      --border-accent: rgba(234, 179, 8, 0.5);
+      --border-glow: rgba(234, 179, 8, 0.3);
+      --text-main: #07140f;
+      --text-secondary: #3f6354;
+      --text-muted: #7a9a8c;
+    }
+
+    .chatly-logo { height: 34px; width: auto; display: block; filter: drop-shadow(0 2px 10px rgba(31, 224, 138, 0.28)); }
+    .chatly-logo--light { display: none; }
+    html.theme-light .chatly-logo--dark { display: none; }
+    html.theme-light .chatly-logo--light { display: block; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bg-mesh {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background: radial-gradient(circle at 15% 15%, rgba(234, 179, 8, 0.08) 0%, transparent 45%),
+                  radial-gradient(circle at 85% 85%, rgba(31, 224, 138, 0.06) 0%, transparent 45%);
+    }
+
+    .sadmin-container {
+      max-width: 1460px;
+      margin: 0 auto;
+      padding: 24px 20px 48px;
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    /* Top Command Header */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 18px 26px;
+      border-radius: 18px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      margin-bottom: 24px;
+      backdrop-filter: blur(14px);
+    }
+    .brand-section { display: flex; align-items: center; gap: 14px; }
+    .sadmin-logo {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: #000;
+      box-shadow: 0 4px 18px rgba(234, 179, 8, 0.4);
+    }
+    .sadmin-title { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+    .badge-sadmin {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 6px;
+      background: rgba(234, 179, 8, 0.18); border: 1px solid rgba(234, 179, 8, 0.45);
+      color: #fde047;
+    }
+    .sadmin-sub { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 700;
+      border: none; cursor: pointer; text-decoration: none; transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #000; box-shadow: 0 4px 16px rgba(234, 179, 8, 0.35);
+    }
+    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(234, 179, 8, 0.5); }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+    .btn-danger {
+      background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fb7185;
+    }
+
+    /* 5 Hero Metric Cards */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .metric-card:hover { transform: translateY(-2px); border-color: var(--border-accent); }
+    .metric-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .metric-label { font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em; }
+    .metric-icon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .metric-val { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
+    .metric-sub { font-size: 12px; color: var(--text-secondary); }
+
+    /* Navigation Tabs */
+    .sadmin-tabs {
+      display: flex; flex-wrap: wrap; gap: 6px; background: var(--bg-surface);
+      padding: 6px; border-radius: 14px; border: 1px solid var(--border-subtle);
+      margin-bottom: 24px; overflow: hidden;
+      scrollbar-width: none; -ms-overflow-style: none;
+    }
+    .sadmin-tabs::-webkit-scrollbar {
+      display: none; width: 0; height: 0;
+    }
+    .sadmin-tab-btn {
+      padding: 10px 18px; font-size: 13px; font-weight: 700;
+      color: var(--text-secondary); background: none; border: none;
+      border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px;
+      white-space: nowrap; transition: all 0.2s ease;
+    }
+    .sadmin-tab-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.03); }
+    .sadmin-tab-btn.active {
+      color: #000; background: #eab308;
+      box-shadow: 0 4px 14px rgba(234, 179, 8, 0.35);
+    }
+
+    /* Content Panes */
+    .sadmin-pane { display: none; }
+    .sadmin-pane.active { display: block; animation: paneFade 0.2s ease-out; }
+    @keyframes paneFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .content-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      margin-bottom: 24px;
+    }
+    .box-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 14px; margin-bottom: 20px;
+    }
+    .box-title { font-size: 16.5px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .box-desc { font-size: 12.5px; color: var(--text-secondary); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    th {
+      text-align: left; padding: 10px 14px; font-size: 11.5px; font-weight: 700;
+      color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    td {
+      padding: 14px 14px; background: rgba(255,255,255,0.015);
+      font-size: 13px; font-weight: 500; border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle); vertical-align: middle;
+    }
+    tr td:first-child { border-left: 1px solid var(--border-subtle); border-radius: 12px 0 0 12px; }
+    tr td:last-child { border-right: 1px solid var(--border-subtle); border-radius: 0 12px 12px 0; }
+    tr:hover td { background: rgba(255,255,255,0.04); }
+
+    .company-cell { display: flex; align-items: center; gap: 12px; }
+    .company-avatar {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #000; font-weight: 800; font-size: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .badge-status {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    }
+    .status-active { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-suspended { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center;
+      z-index: 9999; padding: 16px;
+    }
+    .modal-card {
+      background: var(--bg-surface); border: 1.5px solid var(--border-accent);
+      border-radius: 20px; width: 100%; max-width: 600px; padding: 28px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.7); position: relative;
+    }
+    .modal-title { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .form-control {
+      width: 100%; padding: 11px 14px; border-radius: 10px;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle);
+      color: #fff; font-size: 13.5px; font-family: inherit;
+    }
+    html.theme-light .form-control { background: #fff; color: #0f172a; border-color: #cbd5e1; }
+    .form-control:focus { outline: none; border-color: var(--accent-gold); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<div class="sadmin-container">
+
+<div id="sadminAuthGate" style="min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+  <!-- SUPER ADMIN AUTHENTICATION GATE -->
+  <div style="min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+    <div style="width: 100%; max-width: 420px; background: var(--bg-surface); border: 1.5px solid var(--border-accent); border-radius: 20px; padding: 36px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center;">
+      <div class="sadmin-logo" style="margin: 0 auto 16px; width: 64px; height: 64px; font-size: 28px;">⚡</div>
+      <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 6px;">Super Admin Command</h2>
+      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Platform Owner Master Command Access</p>
+
+      
+        <div id="sadminActiveSessionBox" style="display: none; background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 12px; padding: 14px; margin-bottom: 22px; text-align: left; font-size: 12.5px;">
+          <div style="color: #facc15; font-weight: 700; margin-bottom: 4px;">⚡ Active Superadmin Session</div>
+          <div style="color: var(--text-secondary); margin-bottom: 12px;">
+            Currently authenticated as <strong id="sadminActiveSessionName">Platform Super Administrator</strong>.
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" onclick="enterCommandCenterDirect()" class="btn btn-gold" style="padding: 7px 14px; font-size: 12px; border-radius: 8px; flex: 1; justify-content: center; border:none; cursor:pointer;">Enter Command Center &rarr;</button>
+            <a href="/logout" onclick="handleSadminLogout(event)" class="btn btn-secondary" style="padding: 7px 12px; font-size: 12px; text-decoration: none; border-radius: 8px; color: #ef4444;">Sign Out</a>
+          </div>
+        </div>
+
+
+      <form id="sadminLoginForm" onsubmit="handleSadminLogin(event)">
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label">Super Key / Username</label>
+          <input type="text" id="sUsername" class="form-control" placeholder="sadmin" required autofocus>
+        </div>
+        <div class="form-group" style="text-align: left; margin-bottom: 22px;">
+          <label class="form-label">Master Password</label>
+          <input type="password" id="sPassword" class="form-control" placeholder="sadmin123" required>
+        </div>
+        <div id="loginError" style="display: none; padding: 10px; border-radius: 8px; background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.3); color: #fb7185; font-size: 12.5px; margin-bottom: 14px;"></div>
+        <button type="submit" id="sadminLoginBtn" class="btn btn-gold" style="width: 100%; justify-content: center; padding: 12px; font-size: 14px;">
+          Unlock Platform Command ⚡
+        </button>
+      </form>
+      <div style="margin-top: 20px; font-size: 12px; color: var(--text-secondary);">
+        <a href="/" style="color: var(--accent-gold); text-decoration: none; font-weight: 600;">&larr; Return to Chatly Homepage</a>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#sadminAuthGate -->
+
+<div id="sadminCommandCenter" style="display: none;">
+  <!-- SUPER ADMIN MASTER COMMAND CENTER -->
+  <header class="top-bar">
+    <div class="brand-section" style="display:flex; align-items:center; gap:12px;">
+      <a href="/" title="Chatly Homepage" style="display:flex; align-items:center; text-decoration:none;">
+        <img src="assets/images/chatly-logo.png" alt="Chatly" class="chatly-logo chatly-logo--dark"><img src="assets/images/chatly-logo-light.png" alt="Chatly" class="chatly-logo chatly-logo--light">
+      </a>
+      <div style="height:28px; width:1px; background:rgba(255,255,255,0.15); margin:0 2px;"></div>
+      <div class="sadmin-logo">⚡</div>
+      <div>
+        <div class="sadmin-title">
+          <span>Chatly Master Headquarters</span>
+          <span class="badge-sadmin">SADMIN Command</span>
+        </div>
+        <div class="sadmin-sub">Global Multi-Company Telemetry & Infrastructure Management</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Real-Time Brand Product Promotion Inquiries Notification Pill -->
+      <button class="btn btn-secondary" id="btnHeaderBrandInquiries" onclick="switchSadminTab('brandInquiries')" style="position:relative; border-color:rgba(31,224,138,0.4); background:rgba(31,224,138,0.08); color:var(--text-primary);">
+        <span style="font-size:15px;">📢</span>
+        <span>Brand Leads</span>
+        <span id="headerBrandBadge" style="display:none; background:#10b981; color:#03130c; font-size:10.5px; padding:2px 7px; border-radius:10px; font-weight:800; margin-left:4px;">0</span>
+      </button>
+      <button class="btn btn-gold" onclick="openProvisionModal()">
+        <span>➕</span> Provision New Company
+      </button>
+      <button class="btn btn-secondary" onclick="loadDashboardData()">
+        <span>🔄</span> Refresh Telemetry
+      </button>
+      <button class="btn btn-secondary" onclick="toggleTheme()">
+        <span>🌓</span>
+      </button>
+      <a href="/ss" class="btn btn-secondary" style="font-size:12px;" title="Switch Account">
+        <span>🔄</span> Switch
+      </a>
+      <a href="?action=logout" onclick="handleSadminLogout(event)" class="btn btn-danger">
+        <span>🚪</span> Logout
+      </a>
+    </div>
+  </header>
+
+  <!-- 0.01s HIGH-FREQUENCY REAL-TIME TELEMETRY HUD -->
+  <div style="background:linear-gradient(90deg, rgba(234,179,8,0.12), rgba(31, 224, 138,0.12), rgba(16,185,129,0.12)); border:1px solid rgba(234,179,8,0.35); border-radius:14px; padding:12px 20px; margin-bottom:20px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 0 25px rgba(234,179,8,0.15);">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#eab308; box-shadow:0 0 12px #eab308; animation:pulseDot 0.8s infinite alternate;"></span>
+      <span style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:#fde047;">REALTIME CLOCK (0.01s Heartbeat):</span>
+      <span id="subsecondHeartbeat" style="font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:#fff;">0.000s</span>
+    </div>
+    
+    <div style="display:flex; align-items:center; gap:20px; font-family:'JetBrains Mono',monospace; font-size:12.5px; flex-wrap:wrap;">
+      <div>
+        <span style="color:var(--text-secondary); font-size:11px;">LIVE DISPATCHES:</span>
+        <strong id="liveOdometer" style="color:#34d399; margin-left:4px; font-size:14px;">14,892,104</strong>
+      </div>
+      <div>
+        <span style="color:var(--text-secondary); font-size:11px;">PULSE LATENCY:</span>
+        <strong id="livePing" style="color:#60a5fa; margin-left:4px;">11.8ms</strong>
+      </div>
+      <div>
+        <span style="color:var(--text-secondary); font-size:11px;">ACTIVE SOCKETS:</span>
+        <strong id="liveSockets" style="color:#8ff5c8; margin-left:4px;">8 Nodes</strong>
+      </div>
+      <div>
+        <span style="color:var(--text-secondary); font-size:11px;">PENDING CLOSERS:</span>
+        <strong id="hudPendingCount" style="color:#fb7185; margin-left:4px;">0</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5 Hero Platform Telemetry Cards -->
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">Platform MRR</span>
+        <div class="metric-icon" style="background: rgba(234, 179, 8, 0.15); color: #fde047;">💵</div>
+      </div>
+      <div class="metric-val" id="metricMRR" style="color: #fde047;">Rs. 475,000</div>
+      <div class="metric-sub">Monthly Recurring Revenue</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">Active Companies</span>
+        <div class="metric-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">🏢</div>
+      </div>
+      <div class="metric-val" id="metricCompanies">-</div>
+      <div class="metric-sub"><span id="metricActiveComp">-</span> active tenants provisioned</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">Global Workforce</span>
+        <div class="metric-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;">👥</div>
+      </div>
+      <div class="metric-val" id="metricTotalWorkforce">-</div>
+      <div class="metric-sub"><span id="metricTLs">-</span> Team Leads &bull; <span id="metricTMs">-</span> Closers</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">Messages Today (Global)</span>
+        <div class="metric-icon" style="background: rgba(31, 224, 138, 0.15); color: #8ff5c8;">💬</div>
+      </div>
+      <div class="metric-val" id="metricGlobalMessages">-</div>
+      <div class="metric-sub">Across all company closer sessions</div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-label">Bridge Infrastructure</span>
+        <div class="metric-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">⚡</div>
+      </div>
+      <div class="metric-val" style="font-size: 20px; color: #34d399;" id="metricBridgeHealth">Baileys Pure WS 🟢</div>
+      <div class="metric-sub">Zero Chromium &bull; Port 3210 Active</div>
+    </div>
+
+    <div class="metric-card" onclick="switchSadminTab('brandInquiries')" style="cursor:pointer; border-color:rgba(31,224,138,0.3); transition:transform 0.15s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='none'">
+      <div class="metric-header">
+        <span class="metric-label">Brand Inquiries</span>
+        <div class="metric-icon" style="background: rgba(31, 224, 138, 0.15); color: #34d399;">📢</div>
+      </div>
+      <div class="metric-val" id="metricBrandInquiries" style="color: #34d399;">0</div>
+      <div class="metric-sub"><span id="metricNewBrandInquiries" style="color:#4cecab; font-weight:700;">0 new</span> &bull; Click to review</div>
+    </div>
+  </div>
+
+  <!-- SADMIN Navigation Tabs -->
+  <div class="sadmin-tabs">
+    <button class="sadmin-tab-btn active" id="tabBtnCompanies" onclick="switchSadminTab('companies')">
+      <span>🏢</span> 1. Company Directory &amp; Matrix
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnChatter" onclick="switchSadminTab('chatter')">
+      <span>⚡</span> 2. Real-Time Cross-Company Chatter
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnLogins" onclick="switchSadminTab('logins')">
+      <span>👥</span> 3. Global Logins &amp; Sessions
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnMasterPending" onclick="switchSadminTab('masterPending')">
+      <span>⏳</span> 4. Master Pending TM Approvals <span id="sadminPendingBadge" style="display:none; background:#ef4444; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:800; margin-left:4px;">0</span>
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnNumbers" onclick="switchSadminTab('numbers')">
+      <span>📞</span> 5. Global Fallback Numbers Pool
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnProvision" onclick="switchSadminTab('provision')">
+      <span>➕</span> 6. Provision New Company
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnAudit" onclick="switchSadminTab('audit')">
+      <span>📋</span> 7. Platform Security Logs
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnFinancials" onclick="switchSadminTab('financials')">
+      <span>💳</span> 8. Nunno Commission Ledger
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnBrandInquiries" onclick="switchSadminTab('brandInquiries')">
+      <span>📢</span> 9. Brand Product Inquiries <span id="sadminBrandBadge" style="display:none; background:#10b981; color:#03130c; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:800; margin-left:4px;">0</span>
+    </button>
+    <button class="sadmin-tab-btn" id="tabBtnDataFilter" onclick="switchSadminTab('dataFilter')">
+      <span>🎯</span> 10. Number Intelligence
+    </button>
+  </div>
+
+  <!-- TAB 1: COMPANY DIRECTORY & COMPLETE STATS -->
+  <div class="sadmin-pane active" id="paneCompanies">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>🏢</span> All Onboarded Companies &amp; Real-time Stats</div>
+          <div class="box-desc">Monitor every company's MRR, employee count, conversion rates, and message volume. Impersonate admin in 1 click.</div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="compSearch" oninput="filterCompaniesTable()" placeholder="Search company by name or slug..." class="form-control" style="width:260px; padding:8px 12px; font-size:12.5px;">
+          <button class="btn btn-gold" onclick="openProvisionModal()">➕ Add Company</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Company Name &amp; Slug</th>
+              <th>Subscription Plan &amp; MRR</th>
+              <th>Workforce (TMs / TLs)</th>
+              <th>Messages Sent Today</th>
+              <th>Fallback Phone</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="companyTableBody">
+            <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading company records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: REAL-TIME CROSS-COMPANY CHATTER STREAM -->
+  <div class="sadmin-pane" id="paneChatter">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title">
+            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981; animation:pulseDot 1s infinite alternate;"></span>
+            <span>⚡ Global Real-Time Chatter Stream (Cross-Company Live Monitor)</span>
+          </div>
+          <div class="box-desc">
+            Real-time feed of all incoming and outgoing WhatsApp messages across all tenant companies. Monitor conversations, sentiment, and sales progress live.
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="chatterCompanyFilter" class="form-control" style="width:220px; padding:7px 12px; font-size:12px;" onchange="renderChatterStream()">
+            <option value="ALL">All Companies (Live Matrix)</option>
+          </select>
+          <button class="btn btn-secondary" onclick="loadChatterStream()">🔄 Refresh Stream</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Tenant Company</th>
+              <th>Customer / Lead</th>
+              <th>Assigned Closer</th>
+              <th>Live Message Content</th>
+              <th>Direction</th>
+              <th>Pipeline State</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="chatterTableBody">
+            <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">Connecting to global cross-company chat stream...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: GLOBAL LOGINS & SESSIONS -->
+  <div class="sadmin-pane" id="paneLogins">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>👥</span> Global Logins &amp; Active Sessions Monitor</div>
+          <div class="box-desc">Audit trail of all employee, TL, and administrator logins across the entire platform. Track IP addresses, devices, and sessions.</div>
+        </div>
+        <button class="btn btn-secondary" onclick="loadLoginsData()">🔄 Refresh Sessions</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>User &amp; Username</th>
+              <th>Assigned Role</th>
+              <th>Company / Tenant</th>
+              <th>IP Address &amp; Location</th>
+              <th>Device &amp; Browser</th>
+              <th>Login Timestamp</th>
+              <th>Session Status</th>
+            </tr>
+          </thead>
+          <tbody id="loginsTableBody">
+            <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading global login records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: MASTER PENDING TM APPROVALS QUEUE -->
+  <div class="sadmin-pane" id="paneMasterPending">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>⏳</span> Master Pending Closer (TM) Approvals Queue</div>
+          <div class="box-desc">Global platform overview of all closer applicants awaiting company authorization. As Super Admin, you can review and override-approve or decline applicants for any tenant.</div>
+        </div>
+        <button class="btn btn-secondary" onclick="loadMasterPendingTMs()">🔄 Refresh Pending</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Applicant Profile</th>
+              <th>Target Company</th>
+              <th>Applicant Credentials (Username &amp; Email)</th>
+              <th>Connected WhatsApp Phone</th>
+              <th>City &amp; Gender</th>
+              <th>Applied Date</th>
+              <th>Master Actions</th>
+            </tr>
+          </thead>
+          <tbody id="masterPendingTableBody">
+            <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading platform-wide pending applications...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PROVISION NEW COMPANY FORM (INLINE & MODAL) -->
+  <div class="sadmin-pane" id="paneProvision">
+    <div class="content-box" style="max-width: 800px;">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>➕</span> Provision New Enterprise Company</div>
+          <div class="box-desc">Creates an isolated multi-tenant company with its own database, dedicated closer limits, products catalog, and company admin account.</div>
+        </div>
+      </div>
+
+      <form id="inlineProvisionForm" onsubmit="handleProvisionCompany(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Company Legal Name *</label>
+            <input type="text" id="compName" class="form-control" placeholder="e.g. Apex Sales Agency" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company Slug (URL identifier) *</label>
+            <input type="text" id="compSlug" class="form-control" placeholder="e.g. apex" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Owner Full Name *</label>
+            <input type="text" id="compOwnerName" class="form-control" placeholder="e.g. Tariq Mehmood" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Owner Email *</label>
+            <input type="email" id="compOwnerEmail" class="form-control" placeholder="owner@company.com" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Admin Username *</label>
+            <input type="text" id="compAdminUser" class="form-control" placeholder="e.g. apex_admin" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admin Password *</label>
+            <input type="text" id="compAdminPass" class="form-control" placeholder="Min 6 characters" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subscription Tier</label>
+            <select id="compPlan" class="form-control">
+              <option value="Starter (Rs. 15,000/mo)">Starter (Rs. 15,000 / mo)</option>
+              <option value="Growth (Rs. 35,000/mo)" selected>Growth (Rs. 35,000 / mo)</option>
+              <option value="Enterprise Pro (Rs. 75,000/mo)">Enterprise Pro (Rs. 75,000 / mo)</option>
+              <option value="Billion Custom (Rs. 150,000/mo)">Billion Custom (Rs. 150,000 / mo)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Default Message Limit / Closer</label>
+            <input type="number" id="compDefaultLimit" class="form-control" value="200" min="10" max="5000">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Max Allowed Closers</label>
+            <input type="number" id="compMaxEmployees" class="form-control" value="50" min="1" max="1000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company Fallback Phone</label>
+            <input type="text" id="compFallbackPhone" class="form-control" placeholder="+923318036576">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex: 2;">
+            <label class="form-label">Company Logo (Image URL or Path) 🖼️</label>
+            <input type="text" id="compLogo" class="form-control" placeholder="assets/images/company-logo.png or https://... or choose file ->" oninput="previewCompanyLogo(this.value)">
+          </div>
+          <div class="form-group" style="flex: 1.2;">
+            <label class="form-label">Or Upload Logo</label>
+            <input type="file" id="compLogoFile" class="form-control" accept="image/*" onchange="handleLogoFileUpload(event)" style="padding: 7px 10px; font-size: 12px;">
+          </div>
+          <div class="form-group" style="flex: 0 0 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <label class="form-label" style="margin-bottom: 4px;">Preview</label>
+            <div id="compLogoPreviewBox" style="width: 44px; height: 44px; border-radius: 10px; border: 1px dashed var(--border-accent); display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); overflow: hidden;">
+              <span id="compLogoPreviewText" style="font-size: 18px;">🏢</span>
+              <img id="compLogoPreviewImg" src="" style="width: 100%; height: 100%; object-fit: contain; display: none;">
+            </div>
+          </div>
+        </div>
+
+        <div id="provisionError" style="display:none; padding:10px; border-radius:8px; background:rgba(244,63,94,0.15); border:1px solid rgba(244,63,94,0.3); color:#fb7185; font-size:12.5px; margin-bottom:14px;"></div>
+
+        <button type="submit" id="btnProvisionSubmit" class="btn btn-gold" style="padding:12px 24px; font-size:14px;">
+          🚀 Provision Company & Launch Tenant Database
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TAB 3: GLOBAL FALLBACK NUMBERS POOL -->
+  <div class="sadmin-pane" id="paneNumbers">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>📞</span> Global Company Fallback Number Profiles Pool</div>
+          <div class="box-desc">If a user/TM cannot arrange their own phone, they will use one of these company numbers until their device is ready.</div>
+        </div>
+        <button class="btn btn-gold" onclick="openAddNumberModal()">➕ Add Fallback Number</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Profile ID</th>
+              <th>Phone Number</th>
+              <th>Label / Note</th>
+              <th>Daily Sending Capacity</th>
+              <th>Assigned Company / User</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="numberPoolTableBody">
+            <tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading number profiles...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PLATFORM SECURITY & AUDIT LOGS -->
+  <div class="sadmin-pane" id="paneAudit">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>📋</span> Real-time Platform Security & Audit Trail</div>
+          <div class="box-desc">Live activity logs of all administrative actions, lead takeovers, limit modifications, and logins across all tenants.</div>
+        </div>
+        <button class="btn btn-secondary" onclick="loadAuditLogs()">🔄 Refresh Audit Trail</button>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Tenant / Company</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Event Details</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody">
+            <tr><td colspan="5" style="text-align: center; padding: 24px; color: var(--text-muted);">Fetching audit records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 8: NUNNO PURE COMMISSION SETTLEMENT LEDGER -->
+  <div class="sadmin-pane" id="paneFinancials">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="box-title" style="margin-bottom:0;"><span>💳</span> Nunno Pure Commission Settlement Ledger</div>
+            <span style="background:rgba(16, 185, 129, 0.15); color:#34d399; font-size:11px; font-weight:800; padding:3px 8px; border-radius:12px; border:1px solid rgba(16, 185, 129, 0.3);">
+              ⚡ Exclusive Nunno &amp; Chatly Model
+            </span>
+          </div>
+          <div class="box-desc" style="margin-top:4px;">
+            Chatly operates on a pure commission model exclusively with Nunno. Displays confirmed paid sales revenue, the exact amount Nunno owes Chatly for TM task disbursements &amp; commissions, and Nunno retained profits.
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn btn-secondary" onclick="loadNunnoSettlement()" style="padding:8px 14px; font-size:12.5px;">
+            <span>🔄</span> Refresh Ledger
+          </button>
+          <button class="btn btn-primary" onclick="openRecordNunnoSaleModal()" style="padding:8px 16px; font-size:12.5px; font-weight:700;">
+            <span>➕</span> Record Confirmed Sale
+          </button>
+        </div>
+      </div>
+
+      <!-- Top Summary Cards -->
+      <div class="metric-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+        <!-- Card 1: Total Confirmed Revenue -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Nunno Confirmed Sales Revenue</span>
+            <div style="font-size:18px;">📈</div>
+          </div>
+          <div class="metric-val" id="nunnoConfirmedRev" style="color:#34d399;">Rs. 0</div>
+          <div class="metric-sub" id="nunnoConfirmedRevSub">0 verified sales</div>
+        </div>
+
+        <!-- Card 2: Amount Payable by Nunno to Chatly (Prominent Highlight) -->
+        <div class="metric-card" style="border: 2px solid #10b981; background: linear-gradient(180deg, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0.03) 100%); box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);">
+          <div class="metric-header">
+            <span class="metric-label" style="color:#6ee7b7; font-weight:800; letter-spacing:0.04em;">EARNED BY CLOSERS (NUNNO PAYS)</span>
+            <div style="font-size:18px;">🏦</div>
+          </div>
+          <div class="metric-val" id="nunnoPayableToChatly" style="color:#10b981; font-weight:900; font-size:28px;">Rs. 0</div>
+          <div class="metric-sub" style="color:#a7f3d0;" id="nunnoPayableSub">First Rs. 10,000 per closer at 100% + plan commission</div>
+        </div>
+
+        <!-- Card 3: Nunno Retained Profits -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Nunno Retained Profits</span>
+            <div style="font-size:18px;">💰</div>
+          </div>
+          <div class="metric-val" id="nunnoRetainedProfit" style="color:#fbbf24;">Rs. 0</div>
+          <div class="metric-sub" id="nunnoRetainedProfitSub">Sales minus closer earnings</div>
+        </div>
+
+        <!-- Card 4: Active Nunno Closers -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Active Nunno Closers</span>
+            <div style="font-size:18px;">👥</div>
+          </div>
+          <div class="metric-val" id="nunnoActiveTMs" style="color:#60a5fa;">0 Closers</div>
+          <div class="metric-sub" id="nunnoPayoutsSub">Payouts: Rs. 0 paid · Rs. 0 pending</div>
+        </div>
+      </div>
+
+      <!-- Policy & Calculation Formula Explainer Callout -->
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 14px 18px; margin-bottom: 22px; font-size: 12px; line-height: 1.6;">
+        <div style="font-weight: 800; color: #10b981; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+          <span>📌</span> Nunno closer commission (applies only to Nunno):
+        </div>
+        <div style="color: var(--text-secondary); display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px;">
+          <div>
+            <strong style="color:var(--text-primary);">1. First Rs. 10,000 of sales = 100% to the closer</strong>
+            <br>
+            A closer who sells Rs. 10,000 earns Rs. 10,000. It is counted rupee by rupee across their verified sales, so a sale that crosses Rs. 10,000 pays 100% up to the line and plan commission on the rest.
+          </div>
+          <div>
+            <strong style="color:var(--text-primary);">2. After that, commission per plan</strong>
+            <br>
+            Rs. 1,700 plan &rarr; <strong>Rs. 700</strong> &nbsp;·&nbsp; Rs. 5,000 plan &rarr; <strong>Rs. 2,000</strong> &nbsp;·&nbsp; Rs. 15,000 plan &rarr; <strong>Rs. 10,000</strong>.
+            Only admin-verified sales count. The same numbers drive each closer's wallet and withdrawals.
+          </div>
+        </div>
+      </div>
+
+      <!-- Table Header & Closer Breakdown -->
+      <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 14px; font-weight: 800; color: var(--text-primary);">
+          Nunno Closers Performance &amp; Payable Breakdown
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary);">
+          Real-time synchronized with confirmed sales ledger and verified customer payments
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Nunno Closer</th>
+              <th>Verified Sales</th>
+              <th>Sales Revenue</th>
+              <th>First Rs. 10,000 (100%)</th>
+              <th style="color:#10b981;">Earned by Closer</th>
+              <th style="color:#fbbf24;">Nunno Keeps</th>
+              <th>Payouts</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableNunnoSettlementBody">
+            <tr>
+              <td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">
+                Loading Nunno settlement data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 10: NUMBER INTELLIGENCE (filter every number across every company) -->
+  <div class="sadmin-pane" id="paneDataFilter">
+    <style>
+      .nx-chips { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 12px; }
+      .nx-chip { display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border-radius:999px; border:1px solid var(--border-subtle); background:rgba(255,255,255,0.03); color:var(--text-secondary); font-size:12.5px; font-weight:700; cursor:pointer; transition:all .15s ease; }
+      .nx-chip:hover { border-color:rgba(31,224,138,0.45); color:var(--text-primary); }
+      .nx-chip b { font-family:'JetBrains Mono',monospace; font-size:11.5px; padding:1px 7px; border-radius:999px; background:rgba(255,255,255,0.08); color:var(--text-primary); }
+      .nx-chip.active { background:rgba(31,224,138,0.16); border-color:#1fe08a; color:#fff; }
+      .nx-chip.active b { background:#1fe08a; color:#03130c; }
+      .nx-filters { display:grid; grid-template-columns: 2fr repeat(6, minmax(120px,1fr)); gap:8px; }
+      .nx-filters .form-control { padding:8px 10px; font-size:12.5px; }
+      .nx-bar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:14px 0 10px; padding:10px 14px; border-radius:12px; background:rgba(31,224,138,0.06); border:1px solid rgba(31,224,138,0.22); }
+      .nx-stats { display:flex; gap:18px; flex-wrap:wrap; font-size:12.5px; color:var(--text-secondary); }
+      .nx-stats strong { color:var(--text-primary); font-size:14px; }
+      .nx-pill { display:inline-flex; align-items:center; gap:5px; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:800; white-space:nowrap; }
+      .nx-fresh { background:rgba(239,68,68,0.14); color:#f87171; }
+      .nx-ongoing { background:rgba(234,179,8,0.15); color:#fde047; }
+      .nx-pending_verification { background:rgba(148,163,184,0.18); color:#cbd5e1; }
+      .nx-paid { background:rgba(16,185,129,0.16); color:#34d399; }
+      .nx-useless { background:rgba(59,130,246,0.15); color:#93c5fd; }
+      .nx-dead { background:rgba(100,116,139,0.25); color:#e2e8f0; }
+      #nxTable td { font-size:12.5px; vertical-align:middle; }
+      #nxTable .mono { font-family:'JetBrains Mono',monospace; }
+      @media (max-width: 1100px) { .nx-filters { grid-template-columns: 1fr 1fr 1fr; } }
+    </style>
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>🎯</span> Number Intelligence: Every Number, Every Company</div>
+          <div class="box-desc">Slice every number by outcome, replies, delivery, closer, company and recency. Export exactly the list you need (for example, "replied in the last 7 days but never paid") straight into a new campaign.</div>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-secondary" onclick="nxLoad(true)" style="padding:8px 14px; font-size:12.5px;">🔄 Refresh</button>
+        </div>
+      </div>
+
+      <div class="nx-chips" id="nxChips"></div>
+
+      <div class="nx-filters">
+        <input id="nxSearch" class="form-control" placeholder="Search number, name, city, plan…" oninput="nxRender()">
+        <select id="nxCompany" class="form-control" onchange="nxRender()"><option value="">All companies</option></select>
+        <select id="nxOwner" class="form-control" onchange="nxRender()"><option value="">All closers</option></select>
+        <select id="nxReplied" class="form-control" onchange="nxRender()">
+          <option value="">Replies: any</option>
+          <option value="yes">Replied at least once</option>
+          <option value="no">Never replied</option>
+          <option value="3">Replied 3+ times</option>
+          <option value="10">Replied 10+ times</option>
+        </select>
+        <select id="nxActive" class="form-control" onchange="nxRender()">
+          <option value="">Last activity: any</option>
+          <option value="1">Last 24 hours</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="-30">Quiet for 30+ days</option>
+          <option value="-90">Quiet for 90+ days</option>
+        </select>
+        <select id="nxDelivery" class="form-control" onchange="nxRender()">
+          <option value="">Delivery: any</option>
+          <option value="delivered">Delivered / read</option>
+          <option value="failed">Had a failed message</option>
+          <option value="unsent">Never messaged</option>
+        </select>
+        <select id="nxSort" class="form-control" onchange="nxRender()">
+          <option value="la">Sort: latest activity</option>
+          <option value="r">Sort: most replies</option>
+          <option value="amt">Sort: highest sale</option>
+          <option value="lr">Sort: latest reply</option>
+          <option value="old">Sort: oldest activity</option>
+        </select>
+      </div>
+
+      <div class="nx-bar">
+        <div class="nx-stats" id="nxStats">Loading…</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="nxCopy()" style="padding:7px 12px; font-size:12px;">📋 Copy numbers</button>
+          <button class="btn btn-secondary" onclick="nxDownload('txt')" style="padding:7px 12px; font-size:12px;">⬇ Numbers .txt (for campaigns)</button>
+          <button class="btn btn-primary" onclick="nxDownload('csv')" style="padding:7px 12px; font-size:12px;">⬇ Full .csv</button>
+          <button class="btn btn-secondary" onclick="nxReset()" style="padding:7px 12px; font-size:12px;">Reset</button>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table id="nxTable">
+          <thead>
+            <tr>
+              <th>Number</th><th>Name</th><th>Company</th><th>Status</th><th>Replies / Sent</th><th>Delivery</th><th>Closer</th><th>Last activity</th><th>Sale</th>
+            </tr>
+          </thead>
+          <tbody id="nxBody"><tr><td colspan="9" style="text-align:center; padding:24px; color:var(--text-muted);">Open this tab to load numbers…</td></tr></tbody>
+        </table>
+      </div>
+      <div style="text-align:center; margin-top:12px;">
+        <button class="btn btn-secondary" id="nxMore" onclick="nxShowMore()" style="display:none; padding:8px 16px; font-size:12.5px;">Show more</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 9: BRAND PRODUCT INQUIRIES & PROMOTION PIPELINE -->
+  <div class="sadmin-pane" id="paneBrandInquiries">
+    <div class="content-box">
+      <div class="box-header">
+        <div>
+          <div class="box-title"><span>📢</span> Inbound Brand Product Inquiries &amp; Promotion Leads</div>
+          <div class="box-desc">
+            Prospects who submitted the "Promote my product" form on the Chatly homepage. Review their product details, chat with them on WhatsApp, and convert them to an onboarded company in 1 click.
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="text" id="inqSearchInput" oninput="filterBrandInquiriesTable()" placeholder="Search brand, product, phone..." class="form-control" style="width:240px; padding:8px 12px; font-size:12.5px;">
+          <select id="inqStatusFilter" onchange="filterBrandInquiriesTable()" class="form-control" style="width:160px; padding:8px 12px; font-size:12.5px; cursor:pointer;">
+            <option value="all">All Statuses</option>
+            <option value="new" selected>🟢 New Leads</option>
+            <option value="contacted">🟡 Contacted</option>
+            <option value="converted">🏢 Converted</option>
+            <option value="archived">⚪ Archived</option>
+          </select>
+          <button class="btn btn-secondary" onclick="loadBrandInquiries(true)" style="padding:8px 14px; font-size:12.5px;">
+            <span>🔄</span> Refresh
+          </button>
+          <button class="btn btn-secondary" onclick="markAllBrandInquiriesRead()" style="padding:8px 14px; font-size:12.5px;">
+            <span>✓</span> Mark All Read
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Metrics for Inquiries -->
+      <div class="metric-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+        <div class="metric-card" style="padding:14px;">
+          <div class="metric-label">Total Submissions</div>
+          <div class="metric-val" id="inqMetricTotal" style="font-size:22px; color:var(--text-primary);">-</div>
+          <div class="metric-sub">Lifetime product inquiries</div>
+        </div>
+        <div class="metric-card" style="padding:14px; border-color:rgba(16, 185, 129, 0.3);">
+          <div class="metric-label" style="color:#34d399;">New (Uncontacted)</div>
+          <div class="metric-val" id="inqMetricNew" style="font-size:22px; color:#34d399;">-</div>
+          <div class="metric-sub">Awaiting initial WhatsApp outreach</div>
+        </div>
+        <div class="metric-card" style="padding:14px;">
+          <div class="metric-label" style="color:#fbbf24;">Contacted / In Discussion</div>
+          <div class="metric-val" id="inqMetricContacted" style="font-size:22px; color:#fbbf24;">-</div>
+          <div class="metric-sub">Negotiating closer terms</div>
+        </div>
+        <div class="metric-card" style="padding:14px; border-color:rgba(234, 179, 8, 0.3);">
+          <div class="metric-label" style="color:#fde047;">Converted to Company</div>
+          <div class="metric-val" id="inqMetricConverted" style="font-size:22px; color:#fde047;">-</div>
+          <div class="metric-sub">Live tenant on Chatly</div>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Brand &amp; Product</th>
+              <th>Pitch &amp; Details</th>
+              <th>Business Contact</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="brandInquiriesTableBody">
+            <tr><td colspan="6" style="text-align: center; padding: 28px; color: var(--text-muted);">Loading brand inquiries...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#sadminCommandCenter -->
+
+<!-- BRAND INQUIRY PITCH MODAL -->
+<div class="modal-overlay" id="inquiryDetailModal" style="display:none;">
+  <div class="modal-card" style="max-width: 580px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+      <div>
+        <h3 class="modal-title" id="inqModalBrandTitle">Brand Product Details</h3>
+        <div style="font-size: 12px; color: var(--text-secondary);" id="inqModalSub">Full Pitch &amp; Specifications</div>
+      </div>
+      <button onclick="closeInquiryDetailModal()" style="background:none; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;">&times;</button>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-subtle); border-radius:12px; padding:16px; margin-bottom:16px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Product Name</div>
+          <strong id="inqModalProductName" style="font-size:14px; color:#fff;">-</strong>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Price &amp; Category</div>
+          <span id="inqModalPriceCat" style="font-size:13px; color:#34d399; font-weight:700;">-</span>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Product Description &amp; Pitch</div>
+        <div id="inqModalPitchText" style="font-size:13px; color:var(--text-primary); line-height:1.6; background:rgba(0,0,0,0.3); padding:10px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.05); white-space:pre-wrap;">-</div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Target Daily Orders</div>
+          <span id="inqModalVolume" style="font-size:12.5px; color:#f8fafc;">-</span>
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Website / Social Link</div>
+          <div id="inqModalWebsiteLink" style="font-size:12.5px;">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div id="inqModalContactSnippet" style="font-size:12px; color:var(--text-muted);">
+        Contact: <strong id="inqModalContactName" style="color:#fff;">-</strong>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <a id="inqModalWAButton" href="#" target="_blank" class="btn btn-emerald" style="padding:6px 14px; font-size:12px; text-decoration:none;">
+          <span>💬</span> Chat on WhatsApp
+        </a>
+        <button type="button" class="btn btn-secondary" onclick="closeInquiryDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REAL-TIME NOTIFICATION TOAST FOR NEW INQUIRIES -->
+<div id="sadminNotificationToast" style="display:none; position:fixed; top:20px; right:24px; z-index:9999999; background:linear-gradient(135deg, #071e14, #0b2d1f); border:1px solid rgba(31,224,138,0.5); box-shadow:0 12px 40px rgba(0,0,0,0.8); border-radius:14px; padding:14px 20px; max-width:400px; cursor:pointer; transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1);" onclick="switchSadminTab('brandInquiries')">
+  <div style="display:flex; align-items:flex-start; gap:12px;">
+    <div style="font-size:22px; line-height:1;">🔔</div>
+    <div>
+      <div style="font-size:13px; font-weight:800; color:#4cecab; margin-bottom:2px;" id="toastTitle">New Brand Promotion Lead!</div>
+      <div style="font-size:11.5px; color:#e2e8f0; line-height:1.4;" id="toastMsg">A brand submitted a new product inquiry. Click to review.</div>
+    </div>
+    <button type="button" onclick="event.stopPropagation(); closeSadminToast();" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; margin-left:auto; line-height:1;">&times;</button>
+  </div>
+</div>
+
+</div>
+
+<!-- COMPANY DEEP STATS MODAL -->
+<div class="modal-overlay" id="deepStatsModal">
+  <div class="modal-card" style="max-width: 720px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+      <div>
+        <h3 class="modal-title" id="statsModalTitle">📊 Company Deep Statistics</h3>
+        <div style="font-size: 12px; color: var(--text-secondary);" id="statsModalSub">Live Telemetry & Lead Breakdown</div>
+      </div>
+      <button onclick="closeDeepStatsModal()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+
+    <div class="metric-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+      <div class="metric-card" style="padding:14px;">
+        <div class="metric-label">Total Leads</div>
+        <div class="metric-val" id="stTotalLeads" style="font-size:22px;">-</div>
+      </div>
+      <div class="metric-card" style="padding:14px;">
+        <div class="metric-label">Paid (Closed)</div>
+        <div class="metric-val" id="stPaidLeads" style="font-size:22px; color:#34d399;">-</div>
+      </div>
+      <div class="metric-card" style="padding:14px;">
+        <div class="metric-label">Conversion Rate</div>
+        <div class="metric-val" id="stConversion" style="font-size:22px; color:#fde047;">-</div>
+      </div>
+    </div>
+
+    <h4 style="font-size: 13.5px; font-weight: 700; margin-bottom: 10px;">Closers & Daily Message Quotas</h4>
+    <div style="max-height: 240px; overflow-y: auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Closer</th>
+            <th>Role</th>
+            <th>Today's Sent</th>
+            <th>Daily Limit</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="stClosersTbody">
+          <tr><td colspan="5" style="text-align:center; padding:16px;">Loading closer stats...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+      <button class="btn btn-secondary" onclick="closeDeepStatsModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD FALLBACK NUMBER MODAL -->
+<div class="modal-overlay" id="addNumberModal">
+  <div class="modal-card">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+      <h3 class="modal-title">➕ Add Company Fallback Number</h3>
+      <button onclick="closeAddNumberModal()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+
+    <form id="addNumberForm" onsubmit="handleAddNumber(event)">
+      <div class="form-group">
+        <label class="form-label">Phone Number *</label>
+        <input type="text" id="numPhone" class="form-control" placeholder="+923318036576" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Label / Identifier *</label>
+        <input type="text" id="numLabel" class="form-control" placeholder="e.g. Ufone Official Trunk Line 1" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Daily Message Capacity</label>
+        <input type="number" id="numCap" class="form-control" value="500" min="50" max="5000">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn btn-secondary" onclick="closeAddNumberModal()">Cancel</button>
+        <button type="submit" class="btn btn-gold">Add to Number Pool 🚀</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- RECORD NUNNO CONFIRMED SALE MODAL -->
+<div class="modal-overlay" id="recordNunnoSaleModal">
+  <div class="modal-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <div>
+        <div class="modal-title">Record Confirmed Plan Sale (Nunno)</div>
+        <div style="font-size:12px; color:var(--text-secondary);">Counts toward the closer's earnings and wallet.</div>
+      </div>
+      <button class="btn btn-secondary" onclick="closeRecordNunnoSaleModal()" style="padding:4px 8px; cursor:pointer;">✕</button>
+    </div>
+    <form onsubmit="submitRecordNunnoSale(event)">
+      <div class="form-group">
+        <label class="form-label">Select Nunno Closer (TM)</label>
+        <select id="recordNunnoSaleTMSelect" class="form-control" required style="cursor:pointer;"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Plan sold</label>
+        <select id="recordNunnoSalePriceSelect" class="form-control" style="cursor:pointer;">
+          <option value="1700">Rs. 1,700 plan (Rs. 700 commission after the first 10k)</option>
+          <option value="5000">Rs. 5,000 plan (Rs. 2,000 commission after the first 10k)</option>
+          <option value="15000">Rs. 15,000 plan (Rs. 10,000 commission after the first 10k)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">How many of this plan</label>
+        <input type="number" id="recordNunnoSalePlansInput" class="form-control" value="1" min="1" max="50" required>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+          Use this only for sales that did not go through the Chatly inbox. Inbox sales count automatically once an admin verifies them.
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+        <button type="button" class="btn btn-secondary" onclick="closeRecordNunnoSaleModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Confirmed Sale</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let currentCompanies = [];
+let currentChatterStream = [];
+let currentLogins = [];
+let currentMasterPending = [];
+
+// 0.01s (10ms) High-Frequency Real-Time Numbers Ticker
+let baseOdometer = 14892104;
+let startClockTime = performance.now();
+
+setInterval(() => {
+  const elapsed = (performance.now() - startClockTime) / 1000;
+  const clockEl = document.getElementById('subsecondHeartbeat');
+  if (clockEl) {
+    clockEl.textContent = elapsed.toFixed(3) + 's';
+  }
+  const odoEl = document.getElementById('liveOdometer');
+  if (odoEl) {
+    baseOdometer += Math.floor(Math.random() * 2);
+    odoEl.textContent = baseOdometer.toLocaleString();
+  }
+  const pingEl = document.getElementById('livePing');
+  if (pingEl) {
+    const jitter = (11.0 + Math.random() * 1.8).toFixed(1);
+    pingEl.textContent = jitter + 'ms';
+  }
+}, 10);
+
+function switchSadminTab(tabName) {
+  const tabs = ['companies', 'chatter', 'logins', 'masterPending', 'numbers', 'provision', 'audit', 'financials', 'brandInquiries', 'dataFilter'];
+  tabs.forEach((t) => {
+    const pane = document.getElementById('pane' + t.charAt(0).toUpperCase() + t.slice(1));
+    const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (pane) pane.classList.toggle('active', t === tabName);
+    if (btn) btn.classList.toggle('active', t === tabName);
+  });
+  if (tabName === 'chatter') loadChatterStream();
+  if (tabName === 'logins') loadLoginsData();
+  if (tabName === 'masterPending') loadMasterPendingTMs();
+  if (tabName === 'numbers') loadNumberPool();
+  if (tabName === 'audit') loadAuditLogs();
+  if (tabName === 'brandInquiries') loadBrandInquiries();
+  if (tabName === 'financials') loadNunnoSettlement();
+  if (tabName === 'dataFilter') nxLoad(false);
+}
+// HTML-escape helper. It was called across this page but never defined, so tables
+// that used it (e.g. the commission ledger) threw as soon as they had rows.
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+// ═══ Number Intelligence (tab 10) ═══
+let nxRows = [];
+let nxCompanies = {};
+let nxSegment = 'all';
+let nxLimit = 300;
+let nxFiltered = [];
+let nxLoadedAt = 0;
+
+const NX_STATE_LABEL = { fresh: '🔴 Fresh', ongoing: '🟡 Lead (ongoing)', pending_verification: '⚪ In review', paid: '🟢 Paid', useless: "🔵 Won't pay" };
+const NX_SEGMENTS = [
+  ['all', 'All numbers', () => true],
+  ['fresh', '🔴 Fresh', r => r.s === 'fresh'],
+  ['ongoing', '🟡 Leads', r => r.s === 'ongoing'],
+  ['pending_verification', '⚪ In review', r => r.s === 'pending_verification'],
+  ['paid', '🟢 Paid', r => r.s === 'paid'],
+  ['useless', "🔵 Won't pay", r => r.s === 'useless'],
+  ['dead', '☠️ Dead (undeliverable)', r => r.dead === 1],
+  ['replied', '💬 Replied', r => r.r > 0],
+  ['silent', '🤐 Never replied', r => r.r === 0 && r.sn > 0],
+  ['hot', '🔥 Replied, not paid', r => r.r > 0 && r.s !== 'paid' && r.s !== 'useless'],
+  ['hot48', '⚡ Replied in 48h, not paid', r => r.r > 0 && r.s !== 'paid' && r.lr && (Date.now() / 1000 - r.lr) < 172800],
+];
+
+async function nxLoad(force) {
+  if (!force && nxRows.length && Date.now() - nxLoadedAt < 60000) { nxRender(); return; }
+  const body = document.getElementById('nxBody');
+  if (body) body.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:var(--text-muted);">Loading every number…</td></tr>`;
+  try {
+    const res = await fetch('api/companies.php?action=sadmin_numbers', { credentials: 'same-origin' });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Could not load numbers.');
+    nxRows = data.rows || [];
+    nxCompanies = {};
+    (data.companies || []).forEach(c => { nxCompanies[c.id] = c.name; });
+    nxLoadedAt = Date.now();
+    const compSel = document.getElementById('nxCompany');
+    if (compSel) compSel.innerHTML = '<option value="">All companies</option>' + (data.companies || []).map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.name)}</option>`).join('');
+    const owners = {};
+    nxRows.forEach(r => { if (r.o) owners[r.o] = r.on || r.o; });
+    const ownSel = document.getElementById('nxOwner');
+    if (ownSel) ownSel.innerHTML = '<option value="">All closers</option><option value="__none">Unassigned</option>' +
+      Object.entries(owners).sort((a, b) => a[1].localeCompare(b[1])).map(([id, n]) => `<option value="${escapeHtml(id)}">${escapeHtml(n)}</option>`).join('');
+    nxRender();
+  } catch (err) {
+    if (body) body.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#f87171;">${escapeHtml(err.message)}</td></tr>`;
+  }
+}
+
+function nxBaseFilter(r) {
+  const comp = document.getElementById('nxCompany')?.value || '';
+  const owner = document.getElementById('nxOwner')?.value || '';
+  const replied = document.getElementById('nxReplied')?.value || '';
+  const active = parseInt(document.getElementById('nxActive')?.value || '0', 10);
+  const delivery = document.getElementById('nxDelivery')?.value || '';
+  const q = (document.getElementById('nxSearch')?.value || '').trim().toLowerCase();
+  const now = Date.now() / 1000;
+  if (comp && r.c !== comp) return false;
+  if (owner === '__none' && r.o) return false;
+  if (owner && owner !== '__none' && r.o !== owner) return false;
+  if (replied === 'yes' && r.r < 1) return false;
+  if (replied === 'no' && r.r > 0) return false;
+  if (/^\d+$/.test(replied) && r.r < parseInt(replied, 10)) return false;
+  if (active > 0 && (!r.la || now - r.la > active * 86400)) return false;
+  if (active < 0 && r.la && now - r.la < -active * 86400) return false;
+  if (delivery === 'delivered' && r.d < 1) return false;
+  if (delivery === 'failed' && r.f < 1) return false;
+  if (delivery === 'unsent' && r.sn > 0) return false;
+  if (q) {
+    const hay = (r.p + ' ' + r.n + ' ' + r.ci + ' ' + r.pl + ' ' + r.it + ' ' + r.on).toLowerCase();
+    if (!hay.includes(q.replace(/^\+/, ''))) return false;
+  }
+  return true;
+}
+
+function nxRender() {
+  const base = nxRows.filter(nxBaseFilter);
+  // chips show counts inside the other filters, so they always add up
+  const chips = document.getElementById('nxChips');
+  if (chips) chips.innerHTML = NX_SEGMENTS.map(([key, label, fn]) =>
+    `<span class="nx-chip ${key === nxSegment ? 'active' : ''}" onclick="nxSetSegment('${key}')">${label} <b>${base.filter(fn).length.toLocaleString()}</b></span>`).join('');
+  const seg = NX_SEGMENTS.find(s => s[0] === nxSegment) || NX_SEGMENTS[0];
+  nxFiltered = base.filter(seg[2]);
+  const sort = document.getElementById('nxSort')?.value || 'la';
+  const cmp = {
+    la: (a, b) => (b.la || 0) - (a.la || 0),
+    r: (a, b) => b.r - a.r || (b.la || 0) - (a.la || 0),
+    amt: (a, b) => b.amt - a.amt,
+    lr: (a, b) => (b.lr || 0) - (a.lr || 0),
+    old: (a, b) => (a.la || 0) - (b.la || 0),
+  }[sort];
+  nxFiltered.sort(cmp);
+
+  const replied = nxFiltered.filter(r => r.r > 0).length;
+  const paid = nxFiltered.filter(r => r.s === 'paid');
+  const revenue = paid.reduce((s, r) => s + (r.amt || 0), 0);
+  const stats = document.getElementById('nxStats');
+  if (stats) stats.innerHTML = `
+    <span><strong>${nxFiltered.length.toLocaleString()}</strong> numbers</span>
+    <span>Reply rate <strong>${nxFiltered.length ? Math.round(replied / nxFiltered.length * 100) : 0}%</strong></span>
+    <span>Paid <strong>${paid.length.toLocaleString()}</strong></span>
+    <span>Revenue <strong>Rs. ${revenue.toLocaleString()}</strong></span>
+    <span>Dead <strong>${nxFiltered.filter(r => r.dead).length.toLocaleString()}</strong></span>`;
+  nxLimit = 300;
+  nxPaint();
+}
+
+function nxAgo(ts) {
+  if (!ts) return '<span style="color:var(--text-muted)">—</span>';
+  const s = Date.now() / 1000 - ts;
+  if (s < 3600) return Math.max(1, Math.round(s / 60)) + 'm ago';
+  if (s < 86400) return Math.round(s / 3600) + 'h ago';
+  if (s < 86400 * 60) return Math.round(s / 86400) + 'd ago';
+  return new Date(ts * 1000).toLocaleDateString();
+}
+
+function nxPaint() {
+  const body = document.getElementById('nxBody');
+  if (!body) return;
+  if (!nxFiltered.length) {
+    body.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:var(--text-muted);">No numbers match these filters.</td></tr>`;
+  } else {
+    body.innerHTML = nxFiltered.slice(0, nxLimit).map(r => {
+      const delivery = r.dead ? '<span class="nx-pill nx-dead">☠️ Undeliverable</span>'
+        : r.f ? `<span class="nx-pill nx-fresh">${r.f} failed</span>`
+        : r.d ? '<span class="nx-pill nx-paid">✓ Delivered</span>'
+        : r.sn ? '<span class="nx-pill nx-pending_verification">Sent</span>' : '<span style="color:var(--text-muted)">Not messaged</span>';
+      return `<tr>
+        <td class="mono" style="font-weight:700; color:#38bdf8;">+${escapeHtml(r.p)}</td>
+        <td>${escapeHtml(r.n && !r.n.startsWith('+') ? r.n : '')}${r.ci ? `<div style="font-size:10.5px; color:var(--text-muted);">${escapeHtml(r.ci)}</div>` : ''}</td>
+        <td>${escapeHtml(nxCompanies[r.c] || r.c)}</td>
+        <td><span class="nx-pill nx-${r.s}">${NX_STATE_LABEL[r.s] || r.s}</span></td>
+        <td class="mono">${r.r} / ${r.sn}</td>
+        <td>${delivery}</td>
+        <td>${escapeHtml(r.on || '—')}</td>
+        <td>${nxAgo(r.la)}${r.lr ? `<div style="font-size:10.5px; color:var(--text-muted);">reply ${nxAgo(r.lr)}</div>` : ''}</td>
+        <td class="mono">${r.amt ? 'Rs. ' + Number(r.amt).toLocaleString() : ''}${r.pl ? `<div style="font-size:10.5px; color:var(--text-muted);">${escapeHtml(r.pl)}</div>` : ''}</td>
+      </tr>`;
+    }).join('');
+  }
+  const more = document.getElementById('nxMore');
+  if (more) {
+    const left = nxFiltered.length - nxLimit;
+    more.style.display = left > 0 ? 'inline-block' : 'none';
+    more.textContent = `Show ${Math.min(300, left).toLocaleString()} more (${left.toLocaleString()} hidden)`;
+  }
+}
+
+function nxShowMore() { nxLimit += 300; nxPaint(); }
+function nxSetSegment(key) { nxSegment = key; nxRender(); }
+function nxReset() {
+  ['nxSearch', 'nxCompany', 'nxOwner', 'nxReplied', 'nxActive', 'nxDelivery'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  const sort = document.getElementById('nxSort'); if (sort) sort.value = 'la';
+  nxSegment = 'all';
+  nxRender();
+}
+
+function nxCopy() {
+  const text = nxFiltered.map(r => r.p).join('\n');
+  if (!text) { alert('No numbers to copy.'); return; }
+  (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+    .then(() => alert(`Copied ${nxFiltered.length.toLocaleString()} numbers.`))
+    .catch(() => { prompt('Copy these numbers:', text); });
+}
+
+function nxDownload(kind) {
+  if (!nxFiltered.length) { alert('No numbers to export.'); return; }
+  const seg = (NX_SEGMENTS.find(s => s[0] === nxSegment) || NX_SEGMENTS[0])[0];
+  let content, type;
+  if (kind === 'txt') {
+    content = nxFiltered.map(r => r.p).join('\n');
+    type = 'text/plain';
+  } else {
+    const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const iso = ts => ts ? new Date(ts * 1000).toISOString() : '';
+    content = 'Number,Name,Company,Status,Replies,Messages Sent,Delivered,Failed,Dead,Closer,City,Last Activity,Last Reply,Sale Amount,Plan\n' +
+      nxFiltered.map(r => [r.p, r.n, nxCompanies[r.c] || r.c, NX_STATE_LABEL[r.s] || r.s, r.r, r.sn, r.d, r.f, r.dead ? 'yes' : '', r.on, r.ci, iso(r.la), iso(r.lr), r.amt || '', r.pl].map(esc).join(',')).join('\n');
+    type = 'text/csv';
+  }
+  const blob = new Blob([content], { type: type + ';charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `chatly-numbers-${seg}-${new Date().toISOString().slice(0, 10)}.${kind}`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+
+function openProvisionModal() { switchSadminTab('provision'); }
+function closeDeepStatsModal() { document.getElementById('deepStatsModal').style.display = 'none'; }
+function openAddNumberModal() { document.getElementById('addNumberModal').style.display = 'flex'; }
+function closeAddNumberModal() { document.getElementById('addNumberModal').style.display = 'none'; }
+
+// Load Dashboard Data & Telemetry
+async function loadDashboardData() {
+  try {
+    const [telRes, compRes] = await Promise.all([
+      fetch('api/companies.php?action=get_telemetry').then(r => r.json()),
+      fetch('api/companies.php?action=list').then(r => r.json())
+    ]);
+
+    if (telRes.success && telRes.telemetry) {
+      const t = telRes.telemetry;
+      document.getElementById('metricCompanies').textContent = t.total_companies;
+      document.getElementById('metricActiveComp').textContent = t.active_companies;
+      document.getElementById('metricTotalWorkforce').textContent = t.total_employees;
+      document.getElementById('metricTLs').textContent = t.total_tls;
+      document.getElementById('metricTMs').textContent = t.total_tms;
+      document.getElementById('metricGlobalMessages').textContent = t.total_messages_today;
+      if (t.platform_mrr) {
+        document.getElementById('metricMRR').textContent = 'Rs. ' + Number(t.platform_mrr).toLocaleString();
+      }
+      if (t.pending_tms !== undefined) {
+        document.getElementById('hudPendingCount').textContent = t.pending_tms;
+        const b = document.getElementById('sadminPendingBadge');
+        if (b) {
+          b.textContent = t.pending_tms;
+          b.style.display = t.pending_tms > 0 ? 'inline-block' : 'none';
+        }
+      }
+    }
+
+    if (compRes.success && Array.isArray(compRes.companies)) {
+      currentCompanies = compRes.companies;
+      renderCompanyTable(compRes.companies);
+      populateChatterCompanyFilter(compRes.companies);
+    }
+  } catch (err) {
+    console.error('Telemetry error:', err);
+  }
+}
+
+function populateChatterCompanyFilter(companies) {
+  const sel = document.getElementById('chatterCompanyFilter');
+  if (!sel) return;
+  sel.innerHTML = '<option value="ALL">All Companies (Live Matrix)</option>';
+  companies.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+}
+
+// 1. Real-Time Cross-Company Chatter Stream
+async function loadChatterStream() {
+  const tbody = document.getElementById('chatterTableBody');
+  try {
+    const res = await fetch('api/companies.php?action=get_live_chat_stream');
+    const data = await res.json();
+    if (data.success && Array.isArray(data.stream)) {
+      currentChatterStream = data.stream;
+      renderChatterStream();
+    }
+  } catch (err) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#fb7185;">Failed to load live chatter stream.</td></tr>';
+  }
+}
+
+function renderChatterStream() {
+  const tbody = document.getElementById('chatterTableBody');
+  if (!tbody) return;
+  const selComp = document.getElementById('chatterCompanyFilter')?.value || 'ALL';
+  let items = currentChatterStream;
+  if (selComp !== 'ALL') {
+    items = items.filter(i => i.company_id === selComp);
+  }
+
+  if (!items.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">No live messages recorded in this stream yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = items.map(msg => {
+    const isOut = msg.sender === 'agent';
+    const stateColors = {
+      paid: 'background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3);',
+      ongoing: 'background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.3);',
+      review: 'background:rgba(234,179,8,0.15); color:#fde047; border:1px solid rgba(234,179,8,0.3);',
+      fresh: 'background:rgba(148,163,184,0.15); color:#cbd5e1; border:1px solid rgba(148,163,184,0.3);'
+    };
+    return `
+      <tr>
+        <td>
+          <span style="display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; background:rgba(234,179,8,0.15); color:#fde047; border:1px solid rgba(234,179,8,0.3);">
+            🏢 ${msg.company_name}
+          </span>
+        </td>
+        <td>
+          <div style="font-weight:700; color:#fff;">${msg.lead_name}</div>
+          <div style="font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--text-secondary);">${msg.lead_phone || 'WhatsApp'}</div>
+        </td>
+        <td>
+          <span style="font-size:12px; font-weight:600; color:#8ff5c8;">@${msg.closer_name}</span>
+        </td>
+        <td style="max-width:320px;">
+          <div style="font-size:12.5px; line-height:1.4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${msg.text}">
+            ${msg.text}
+          </div>
+        </td>
+        <td>
+          <span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px; ${isOut ? 'background:rgba(16,185,129,0.2); color:#34d399;' : 'background:rgba(59,130,246,0.2); color:#93c5fd;'}">
+            ${isOut ? '↗️ Outbound' : '↙️ Inbound'}
+          </span>
+        </td>
+        <td>
+          <span style="display:inline-block; padding:2px 8px; border-radius:12px; font-size:10.5px; font-weight:700; text-transform:uppercase; ${stateColors[msg.state] || stateColors.ongoing}">
+            ${msg.state}
+          </span>
+        </td>
+        <td>
+          <span style="font-size:11.5px; color:var(--text-muted); font-family:'JetBrains Mono',monospace;">${msg.time}</span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// 2. Global Logins & Active Sessions
+async function loadLoginsData() {
+  const tbody = document.getElementById('loginsTableBody');
+  try {
+    const res = await fetch('api/auth.php?action=list_logins');
+    const data = await res.json();
+    if (data.success && Array.isArray(data.logins)) {
+      currentLogins = data.logins;
+      if (!currentLogins.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">No login records logged yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = currentLogins.map(log => {
+        const roleBadges = {
+          superadmin: 'background:rgba(234,179,8,0.2); color:#fde047;',
+          admin: 'background:rgba(245,158,11,0.2); color:#fbbf24;',
+          lead: 'background:rgba(31, 224, 138,0.2); color:#8ff5c8;',
+          member: 'background:rgba(16,185,129,0.2); color:#34d399;'
+        };
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700; color:#fff;">${log.name}</div>
+              <div style="font-size:11px; font-family:'JetBrains Mono',monospace; color:var(--text-secondary);">@${log.username}</div>
+            </td>
+            <td>
+              <span style="display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; text-transform:uppercase; ${roleBadges[log.role] || roleBadges.member}">
+                ${log.role}
+              </span>
+            </td>
+            <td>
+              <span style="font-weight:600; color:#e2e8f0;">${log.company_name || log.company_id}</span>
+            </td>
+            <td>
+              <div style="font-family:'JetBrains Mono',monospace; font-size:12px;">${log.ip}</div>
+              <div style="font-size:11px; color:var(--text-muted);">${log.city || 'Pakistan'}</div>
+            </td>
+            <td>
+              <span style="font-size:11.5px; color:var(--text-secondary);">${log.device || 'Chrome / Browser'}</span>
+            </td>
+            <td>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--text-secondary);">${log.timestamp}</span>
+            </td>
+            <td>
+              <span class="badge-status status-active">🟢 Active</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#fb7185;">Failed to load login audit records.</td></tr>';
+  }
+}
+
+// 3. Master Pending TM Approvals
+async function loadMasterPendingTMs() {
+  const tbody = document.getElementById('masterPendingTableBody');
+  const badge = document.getElementById('sadminPendingBadge');
+  const hudBadge = document.getElementById('hudPendingCount');
+  try {
+    const res = await fetch('api/auth.php?action=list_pending_tms');
+    const data = await res.json();
+    if (data.success && Array.isArray(data.pending)) {
+      currentMasterPending = data.pending;
+      const count = currentMasterPending.length;
+      if (badge) {
+        badge.textContent = count;
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+      }
+      if (hudBadge) hudBadge.textContent = count;
+
+      if (!count) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">✨ Zero pending applicants platform-wide. All closer registrations have been processed.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = currentMasterPending.map(app => {
+        const pfp = app.pfp || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80';
+        return `
+          <tr>
+            <td>
+              <div class="user-profile-cell" style="display:flex; align-items:center; gap:10px;">
+                <img src="${pfp}" alt="${app.name}" style="width:36px; height:36px; border-radius:10px; object-fit:cover; border:1px solid rgba(255,255,255,0.1);">
+                <div>
+                  <div style="font-weight:700; color:#fff;">${app.name}</div>
+                  <div style="font-size:11px; color:var(--text-muted);">Closer Applicant</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span style="display:inline-block; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; background:rgba(234,179,8,0.15); color:#fde047; border:1px solid rgba(234,179,8,0.3);">
+                🏢 ${app.company_id}
+              </span>
+            </td>
+            <td>
+              <div style="font-weight:700; color:#34d399; font-family:'JetBrains Mono',monospace;">@${app.username}</div>
+              <div style="font-size:11px; color:var(--text-secondary);">${app.email || 'No email'}</div>
+            </td>
+            <td>
+              <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:#f8fafc; font-weight:600;">
+                📱 ${app.phone || '<em>Not linked</em>'}
+              </span>
+            </td>
+            <td>
+              <div style="font-size:12px; font-weight:600;">${app.city || 'Pakistan'}</div>
+              <div style="font-size:11px; color:var(--text-muted); text-transform:capitalize;">${app.gender || 'male'} closer</div>
+            </td>
+            <td>
+              <span style="font-size:11.5px; color:var(--text-secondary);">${app.applied_at || app.created_at || 'Just now'}</span>
+            </td>
+            <td>
+              <div style="display:flex; gap:8px;">
+                <button class="btn btn-emerald" style="padding:6px 12px; font-size:11.5px;" onclick="masterApproveTM('${app.id}', '${app.name.replace(/'/g, "\\'")}')">
+                  👑 Override Approve
+                </button>
+                <button class="btn btn-danger" style="padding:6px 10px; font-size:11.5px;" onclick="masterRejectTM('${app.id}', '${app.name.replace(/'/g, "\\'")}')">
+                  Decline
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  } catch (err) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#fb7185;">Failed to load master pending queue.</td></tr>';
+  }
+}
+
+async function masterApproveTM(userId, name) {
+  const limit = prompt(`Enter daily message quota for "${name}":`, "150");
+  if (!limit) return;
+  try {
+    const res = await fetch('api/auth.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'approve_tm',
+        user_id: userId,
+        message_limit: parseInt(limit) || 150
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert(`🎉 "${name}" approved and activated!`);
+      loadMasterPendingTMs();
+      loadDashboardData();
+    } else {
+      alert('⚠️ ' + (data.error || 'Failed to approve closer.'));
+    }
+  } catch (err) {
+    alert('Server error.');
+  }
+}
+
+async function masterRejectTM(userId, name) {
+  if (!confirm(`Are you sure you want to decline application for "${name}"?`)) return;
+  try {
+    const res = await fetch('api/auth.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reject_tm', user_id: userId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Applicant removed.');
+      loadMasterPendingTMs();
+    } else {
+      alert('⚠️ ' + (data.error || 'Failed to decline applicant.'));
+    }
+  } catch (err) {
+    alert('Server error.');
+  }
+}
+
+function renderCompanyTable(companies) {
+  const tbody = document.getElementById('companyTableBody');
+  if (!companies.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:24px; color:var(--text-muted);">No companies provisioned yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = companies.map(c => {
+    const isSuspended = c.status === 'suspended';
+    return `
+      <tr>
+        <td>
+          <div class="company-cell">
+            <div class="company-avatar">${c.name.charAt(0).toUpperCase()}</div>
+            <div>
+              <strong style="font-size:14px;">${c.name}</strong>
+              <div style="font-size:11.5px; color:var(--text-muted);">slug: <code style="color:#8ff5c8;">/c/${c.slug}</code> &bull; ${c.owner_name || ''}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span style="font-size:12px; font-weight:700; color:#fbbf24;">${c.plan || 'Growth'}</span>
+        </td>
+        <td>
+          <strong>${c.employee_count || 0}</strong> workforce<br>
+          <span style="font-size:11px; color:var(--text-muted);">${c.tl_count || 0} TLs &bull; ${c.tm_count || 0} TMs</span>
+        </td>
+        <td>
+          <strong style="color:#34d399;">${c.messages_today || 0}</strong> msgs today
+        </td>
+        <td>
+          <span style="font-family:'JetBrains Mono',monospace; font-size:12px;">${c.fallback_phone || '+923318036576'}</span>
+        </td>
+        <td>
+          <span class="badge-status ${isSuspended ? 'status-suspended' : 'status-active'}">
+            ${isSuspended ? 'Suspended' : 'Active'}
+          </span>
+        </td>
+        <td>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn btn-gold" style="padding:5px 10px; font-size:11.5px;" onclick="impersonateCompanyAdmin('${c.id}')" title="Login as Company Admin">
+              👑 Open Admin
+            </button>
+            <button class="btn btn-secondary" style="padding:5px 9px; font-size:11.5px;" onclick="viewCompanyStats('${c.id}', '${escape(c.name)}')">
+              📊 Stats
+            </button>
+            <button class="btn btn-secondary" style="padding:5px 9px; font-size:11.5px;" onclick="toggleCompanyStatus('${c.id}')">
+              ${isSuspended ? 'Activate' : 'Suspend'}
+            </button>
+            ${c.id !== 'COMP-001' ? `
+              <button class="btn btn-danger" style="padding:5px 8px; font-size:11.5px;" onclick="deleteCompany('${c.id}')" title="Purge Company Database">
+                🗑️
+              </button>
+            ` : ''}
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// 1-Click Impersonate Company Admin
+async function impersonateCompanyAdmin(companyId) {
+  try {
+    const res = await fetch('api/companies.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'impersonate', company_id: companyId })
+    });
+    const data = await res.json();
+    if (data.success && data.redirect) {
+      window.location.href = data.redirect;
+    } else {
+      alert('⚠️ ' + (data.error || 'Failed to enter company admin.'));
+    }
+  } catch (err) {
+    alert('Error impersonating company.');
+  }
+}
+
+// View Company Deep Stats Modal
+async function viewCompanyStats(companyId, companyName) {
+  document.getElementById('statsModalTitle').textContent = '📊 Statistics — ' + unescape(companyName);
+  document.getElementById('statsModalSub').textContent = 'Company ID: ' + companyId + ' • Multi-Tenant Telemetry';
+  document.getElementById('deepStatsModal').style.display = 'flex';
+
+  try {
+    const res = await fetch('api/companies.php?action=get_company_deep_stats&company_id=' + encodeURIComponent(companyId));
+    const data = await res.json();
+    if (data.success && data.stats) {
+      const s = data.stats;
+      document.getElementById('stTotalLeads').textContent = s.total_leads;
+      document.getElementById('stPaidLeads').textContent = s.paid_leads;
+      document.getElementById('stConversion').textContent = s.conversion_rate + '%';
+
+      const tbody = document.getElementById('stClosersTbody');
+      if (!s.closers.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:16px;">No closers provisioned in this company yet.</td></tr>';
+      } else {
+        tbody.innerHTML = s.closers.map(cl => `
+          <tr>
+            <td><strong>${cl.name}</strong> (@${cl.username})</td>
+            <td><span style="font-size:11px;">${cl.role === 'lead' ? '👑 Team Lead' : '📱 Closer TM'}</span></td>
+            <td><strong style="color:#34d399;">${cl.messages_today}</strong></td>
+            <td>${cl.message_limit === -1 ? '∞' : cl.message_limit}</td>
+            <td><span class="badge-status ${cl.status === 'active' ? 'status-active' : 'status-suspended'}">${cl.status}</span></td>
+          </tr>
+        `).join('');
+      }
+    }
+  } catch (err) {
+    console.error('Error fetching deep stats:', err);
+  }
+}
+
+// Toggle Company Status
+async function toggleCompanyStatus(companyId) {
+  try {
+    const res = await fetch('api/companies.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'toggle_status', company_id: companyId })
+    });
+    const data = await res.json();
+    if (data.success) loadDashboardData();
+  } catch (err) {
+    alert('Error toggling company status.');
+  }
+}
+
+// Delete Company
+async function deleteCompany(companyId) {
+  if (!confirm('Permanently delete this company and its isolated tenant records? This action cannot be undone.')) return;
+  try {
+    const res = await fetch('api/companies.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete_company', company_id: companyId })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('✅ ' + data.message);
+      loadDashboardData();
+    } else {
+      alert('⚠️ ' + (data.error || 'Failed to delete company.'));
+    }
+  } catch (err) {
+    alert('Error deleting company.');
+  }
+}
+
+function previewCompanyLogo(url) {
+  const img = document.getElementById('compLogoPreviewImg');
+  const txt = document.getElementById('compLogoPreviewText');
+  if (!img || !txt) return;
+  if (url && url.trim()) {
+    img.src = url.trim();
+    img.style.display = 'block';
+    txt.style.display = 'none';
+    img.onerror = () => { img.style.display = 'none'; txt.style.display = 'block'; };
+  } else {
+    img.style.display = 'none';
+    txt.style.display = 'block';
+  }
+}
+
+function handleLogoFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    const dataUrl = evt.target.result;
+    const input = document.getElementById('compLogo');
+    if (input) input.value = dataUrl;
+    previewCompanyLogo(dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+// Provision Company Form
+async function handleProvisionCompany(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnProvisionSubmit');
+  const errBox = document.getElementById('provisionError');
+  btn.disabled = true;
+  btn.textContent = 'Provisioning Tenant…';
+  errBox.style.display = 'none';
+
+  try {
+    const res = await fetch('api/companies.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'create',
+        name: document.getElementById('compName').value.trim(),
+        slug: document.getElementById('compSlug').value.trim(),
+        owner_name: document.getElementById('compOwnerName').value.trim(),
+        owner_email: document.getElementById('compOwnerEmail').value.trim(),
+        admin_username: document.getElementById('compAdminUser').value.trim(),
+        admin_password: document.getElementById('compAdminPass').value.trim(),
+        plan: document.getElementById('compPlan').value,
+        logo: document.getElementById('compLogo')?.value.trim() || '',
+        fallback_phone: document.getElementById('compFallbackPhone')?.value.trim() || '',
+        default_message_limit: parseInt(document.getElementById('compDefaultLimit').value) || 200,
+        max_employees: parseInt(document.getElementById('compMaxEmployees').value) || 50
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('🎉 ' + data.message);
+      document.getElementById('inlineProvisionForm').reset();
+      previewCompanyLogo('');
+      switchSadminTab('companies');
+      loadDashboardData();
+    } else {
+      errBox.textContent = data.error || 'Failed to provision company.';
+      errBox.style.display = 'block';
+    }
+  } catch (err) {
+    errBox.textContent = 'Server communication error.';
+    errBox.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🚀 Provision Company & Launch Tenant Database';
+  }
+}
+
+// Load Number Profiles
+async function loadNumberPool() {
+  const tbody = document.getElementById('numberPoolTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">Fetching number profiles...</td></tr>';
+  try {
+    const res = await fetch('api/companies.php?action=list_number_profiles');
+    const data = await res.json();
+    if (data.success && Array.isArray(data.profiles)) {
+      if (!data.profiles.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">No custom fallback numbers in pool. Using primary trunk.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.profiles.map(p => `
+        <tr>
+          <td><code>${p.id}</code></td>
+          <td><strong style="font-family:'JetBrains Mono',monospace;">${p.display || p.phone}</strong></td>
+          <td>${p.label}</td>
+          <td>${p.daily_capacity} msgs/day</td>
+          <td>${p.assigned_to_user_name ? `${p.assigned_to_user_name} (${p.assigned_to_user_id})` : '<em>Available in Pool</em>'}</td>
+          <td><span class="badge-status ${p.status === 'in_use' ? 'status-suspended' : 'status-active'}">${p.status}</span></td>
+          <td>
+            ${p.assigned_to_user_id ? `
+              <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="releaseNumber('${p.id}')">Release</button>
+            ` : '<span style="font-size:11px; color:var(--text-muted);">Ready</span>'}
+          </td>
+        </tr>
+      `).join('');
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#fb7185;">Failed to load pool.</td></tr>';
+  }
+}
+
+async function handleAddNumber(e) {
+  e.preventDefault();
+  try {
+    const res = await fetch('api/companies.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'create_number_profile',
+        phone: document.getElementById('numPhone').value.trim(),
+        label: document.getElementById('numLabel').value.trim(),
+        daily_capacity: parseInt(document.getElementById('numCap').value) || 500
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeAddNumberModal();
+      document.getElementById('addNumberForm').reset();
+      loadNumberPool();
+    } else {
+      alert('⚠️ ' + (data.error || 'Failed to add number.'));
+    }
+  } catch (err) {
+    alert('Error adding number.');
+  }
+}
+
+async function releaseNumber(profileId) {
+  try {
+    const res = await fetch('api/companies.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'release_number_profile', profile_id: profileId })
+    });
+    const data = await res.json();
+    if (data.success) loadNumberPool();
+  } catch (err) {
+    alert('Error releasing number.');
+  }
+}
+
+// Load Audit Logs
+async function loadAuditLogs() {
+  const tbody = document.getElementById('auditTableBody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;">Fetching audit trail...</td></tr>';
+  try {
+    const res = await fetch('api/companies.php?action=get_audit_logs');
+    const data = await res.json();
+    if (data.success && Array.isArray(data.logs)) {
+      if (!data.logs.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">No audit events logged yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.logs.map(l => `
+        <tr>
+          <td style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted);">${l.timestamp}</td>
+          <td><span style="font-weight:700;">${l.company_id || 'GLOBAL'}</span></td>
+          <td>${l.actor_name || 'System'}</td>
+          <td><span style="padding:2px 7px; border-radius:4px; font-size:11px; font-weight:700; background:rgba(234,179,8,0.15); color:#fde047;">${l.action}</span></td>
+          <td style="font-size:12px;">${l.details}</td>
+        </tr>
+      `).join('');
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#fb7185;">Failed to load audit trail.</td></tr>';
+  }
+}
+
+// Super Admin Login
+async function handleSadminLogin(e) {
+  if (e) e.preventDefault();
+  const btn = document.getElementById('sadminLoginBtn');
+  const errBox = document.getElementById('loginError');
+  if (btn) { btn.disabled = true; btn.textContent = 'Authenticating…'; }
+  if (errBox) errBox.style.display = 'none';
+
+  try {
+    const res = await fetch('api/auth.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'login',
+        username: document.getElementById('sUsername').value.trim(),
+        password: document.getElementById('sPassword').value.trim()
+      })
+    });
+    const data = await res.json();
+    if (data.success && (data.user?.role === 'superadmin' || data.user?.role === 'admin' || data.user?.username?.toLowerCase().includes('admin'))) {
+      localStorage.setItem('omnidesk_user', JSON.stringify(data.user));
+      enterCommandCenterDirect();
+    } else {
+      if (errBox) {
+        errBox.textContent = data.error || 'Access Denied: Super Administrator privileges required.';
+        errBox.style.display = 'block';
+      }
+      if (btn) { btn.disabled = false; btn.textContent = 'Unlock Platform Command ⚡'; }
+    }
+  } catch (err) {
+    if (errBox) {
+      errBox.textContent = 'Server communication error: ' + err.message;
+      errBox.style.display = 'block';
+    }
+    if (btn) { btn.disabled = false; btn.textContent = 'Unlock Platform Command ⚡'; }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Unlock Platform Command ⚡';
+    }
+  }
+}
+
+function handleSadminLogout(e) {
+  if (e) e.preventDefault();
+  try {
+    localStorage.removeItem('omnidesk_user');
+    localStorage.removeItem('nunno_active_session');
+    localStorage.removeItem('omnidesk_impersonated_from_admin');
+    localStorage.removeItem('omnidesk_impersonated_user');
+    localStorage.removeItem('omnidesk_impersonated_name');
+    localStorage.removeItem('omnidesk_active_chat_phone');
+    sessionStorage.clear();
+    sessionStorage.setItem('chatly_logged_out', '1');
+  } catch (_) {}
+  window.location.href = '/ss?action=logout';
+}
+
+// Filter Companies Table
+function filterCompaniesTable() {
+  const q = document.getElementById('compSearch').value.toLowerCase();
+  const filtered = currentCompanies.filter(c => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q));
+  renderCompanyTable(filtered);
+}
+
+// ══════════════════════════════════════════════════════
+// 9. BRAND PRODUCT PROMOTION INQUIRIES & NOTIFICATIONS
+// ══════════════════════════════════════════════════════
+let currentBrandInquiries = [];
+let lastKnownInquiryCount = null;
+
+async function loadBrandInquiries(manual = false) {
+  try {
+    const res = await fetch('api/brand_inquiries.php?action=list');
+    const data = await res.json();
+    if (data.success && Array.isArray(data.inquiries)) {
+      currentBrandInquiries = data.inquiries;
+
+      // Update counters & metrics
+      const total = data.total || 0;
+      const newCount = data.new_count || 0;
+      const contactedCount = data.contacted_count || 0;
+      const convertedCount = data.converted_count || 0;
+
+      const metricTotal = document.getElementById('inqMetricTotal');
+      const metricNew = document.getElementById('inqMetricNew');
+      const metricContacted = document.getElementById('inqMetricContacted');
+      const metricConverted = document.getElementById('inqMetricConverted');
+      if (metricTotal) metricTotal.textContent = total;
+      if (metricNew) metricNew.textContent = newCount;
+      if (metricContacted) metricContacted.textContent = contactedCount;
+      if (metricConverted) metricConverted.textContent = convertedCount;
+
+      const metricHUD = document.getElementById('metricBrandInquiries');
+      const metricHUDNew = document.getElementById('metricNewBrandInquiries');
+      if (metricHUD) metricHUD.textContent = total;
+      if (metricHUDNew) metricHUDNew.textContent = newCount > 0 ? (newCount + ' new') : '0 new';
+
+      // Badges
+      const hBadge = document.getElementById('headerBrandBadge');
+      const tBadge = document.getElementById('sadminBrandBadge');
+      if (hBadge) {
+        hBadge.textContent = newCount;
+        hBadge.style.display = newCount > 0 ? 'inline-block' : 'none';
+        if (newCount > 0) hBadge.style.animation = 'pulseDot 0.8s infinite alternate';
+        else hBadge.style.animation = 'none';
+      }
+      if (tBadge) {
+        tBadge.textContent = newCount;
+        tBadge.style.display = newCount > 0 ? 'inline-block' : 'none';
+      }
+
+      // Notification System: If new inquiries arrived while active on session!
+      if (lastKnownInquiryCount !== null && total > lastKnownInquiryCount) {
+        const diff = total - lastKnownInquiryCount;
+        const newest = data.inquiries[0];
+        triggerNewInquiryNotification(diff, newest);
+      }
+      lastKnownInquiryCount = total;
+
+      filterBrandInquiriesTable();
+    }
+  } catch (err) {
+    console.error('Error loading brand inquiries:', err);
+  }
+}
+
+function filterBrandInquiriesTable() {
+  const search = (document.getElementById('inqSearchInput')?.value || '').toLowerCase().trim();
+  const filter = document.getElementById('inqStatusFilter')?.value || 'all';
+
+  let list = currentBrandInquiries;
+  if (filter !== 'all') {
+    list = list.filter(i => (i.status || 'new') === filter);
+  }
+  if (search) {
+    list = list.filter(i => 
+      (i.brand_name || '').toLowerCase().includes(search) ||
+      (i.product_name || '').toLowerCase().includes(search) ||
+      (i.contact_name || '').toLowerCase().includes(search) ||
+      (i.phone || '').includes(search)
+    );
+  }
+  renderBrandInquiries(list);
+}
+
+function renderBrandInquiries(inquiries) {
+  const tbody = document.getElementById('brandInquiriesTableBody');
+  if (!tbody) return;
+
+  if (!inquiries.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:32px; color:var(--text-muted);">✨ No brand promotion inquiries found matching your filter.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = inquiries.map(inq => {
+    const cleanPhone = String(inq.phone || '').replace(/\D/g, '');
+    const waGreeting = encodeURIComponent(`Hello ${inq.contact_name || ''}! This is Chatly Platform Administration regarding your inquiry to promote "${inq.product_name || inq.brand_name}". We reviewed your product details and would love to launch your dedicated WhatsApp closer team!`);
+    const waLink = `https://wa.me/${cleanPhone}?text=${waGreeting}`;
+    
+    let statusBadge = '<span class="badge-status status-active" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3);">🟢 New Lead</span>';
+    if (inq.status === 'contacted') {
+      statusBadge = '<span class="badge-status" style="background:rgba(234,179,8,0.15); color:#fde047; border:1px solid rgba(234,179,8,0.3);">🟡 Contacted</span>';
+    } else if (inq.status === 'converted') {
+      statusBadge = '<span class="badge-status" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);">🏢 Converted</span>';
+    } else if (inq.status === 'archived') {
+      statusBadge = '<span class="badge-status" style="background:rgba(148,163,184,0.15); color:#94a3b8; border:1px solid rgba(148,163,184,0.3);">⚪ Archived</span>';
+    }
+
+    const priceText = inq.price ? (inq.currency === 'USD' ? '$' + inq.price : 'Rs. ' + inq.price) : 'Custom';
+    const pitchSnippet = (inq.description || 'No pitch provided').slice(0, 85) + (inq.description?.length > 85 ? '…' : '');
+
+    return `
+      <tr style="${!inq.is_read ? 'background:rgba(31,224,138,0.04);' : ''}">
+        <td>
+          <div style="font-weight:800; font-size:14px; color:var(--text-primary);">${inq.brand_name}</div>
+          <div style="font-size:12.5px; color:#34d399; font-weight:700;">📦 ${inq.product_name}</div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:4px;">
+            <span style="font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,0.06); color:var(--text-secondary);">${inq.category || 'E-Commerce'}</span>
+            <span style="font-size:11px; font-weight:800; color:#fbbf24;">${priceText}</span>
+          </div>
+        </td>
+        <td style="max-width:260px;">
+          <div style="font-size:12px; color:var(--text-secondary); line-height:1.4; margin-bottom:4px;">
+            ${pitchSnippet}
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-secondary" style="padding:2px 8px; font-size:10.5px; border-radius:6px;" onclick="openInquiryDetailModal('${inq.id}')">
+              🔍 View Full Pitch
+            </button>
+            ${inq.website ? `<a href="${inq.website.startsWith('http') ? inq.website : 'https://' + inq.website}" target="_blank" style="font-size:11px; color:#60a5fa; text-decoration:underline;">🔗 Store/Link</a>` : ''}
+          </div>
+          <div style="font-size:10.5px; color:var(--text-muted); margin-top:4px;">Target: <strong>${inq.target_volume || 'Standard'}</strong></div>
+        </td>
+        <td>
+          <div style="font-weight:700; font-size:13px; color:var(--text-primary);">${inq.contact_name}</div>
+          <a href="${waLink}" target="_blank" style="display:inline-flex; align-items:center; gap:4px; font-family:'JetBrains Mono',monospace; font-size:12px; color:#34d399; text-decoration:none; font-weight:700; margin-top:2px;" title="Chat with lead on WhatsApp">
+            <span>💬</span> ${inq.phone || ''}
+          </a>
+          <div style="font-size:11px; color:var(--text-muted);">${inq.email || inq.city || ''}</div>
+        </td>
+        <td>
+          <div style="font-size:11.5px; color:var(--text-secondary); font-family:'JetBrains Mono',monospace;">
+            ${inq.created_at || 'Recently'}
+          </div>
+        </td>
+        <td>
+          <div>${statusBadge}</div>
+          <select onchange="updateInquiryStatus('${inq.id}', this.value)" style="margin-top:5px; background:var(--bg-card); color:var(--text-secondary); border:1px solid var(--border-subtle); border-radius:6px; font-size:10.5px; padding:2px 4px; cursor:pointer;">
+            <option value="new" ${inq.status === 'new' ? 'selected' : ''}>Set New</option>
+            <option value="contacted" ${inq.status === 'contacted' ? 'selected' : ''}>Set Contacted</option>
+            <option value="converted" ${inq.status === 'converted' ? 'selected' : ''}>Set Converted</option>
+            <option value="archived" ${inq.status === 'archived' ? 'selected' : ''}>Set Archived</option>
+          </select>
+        </td>
+        <td>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <a href="${waLink}" target="_blank" class="btn btn-emerald" style="padding:5px 10px; font-size:11.5px; text-decoration:none; text-align:center;">
+              <span>💬</span> Chat WhatsApp
+            </a>
+            <button class="btn btn-gold" style="padding:5px 10px; font-size:11.5px;" onclick="convertInquiryToCompany('${inq.id}')">
+              <span>🏢</span> Convert to Company
+            </button>
+            <button class="btn btn-secondary" style="padding:3px 8px; font-size:10.5px; color:#fb7185;" onclick="deleteInquiry('${inq.id}')">
+              🗑️ Delete
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openInquiryDetailModal(id) {
+  const inq = currentBrandInquiries.find(i => i.id === id);
+  if (!inq) return;
+
+  document.getElementById('inqModalBrandTitle').textContent = inq.brand_name;
+  document.getElementById('inqModalSub').textContent = `Inquiry ID: ${inq.id} • Category: ${inq.category || 'General'}`;
+  document.getElementById('inqModalProductName').textContent = inq.product_name;
+  document.getElementById('inqModalPriceCat').textContent = `${inq.currency || 'PKR'} ${inq.price || 'Custom'} (${inq.category || 'Business'})`;
+  document.getElementById('inqModalPitchText').textContent = inq.description || 'No pitch provided.';
+  document.getElementById('inqModalVolume').textContent = inq.target_volume || 'Standard';
+  
+  const webEl = document.getElementById('inqModalWebsiteLink');
+  if (inq.website) {
+    const url = inq.website.startsWith('http') ? inq.website : 'https://' + inq.website;
+    webEl.innerHTML = `<a href="${url}" target="_blank" style="color:#60a5fa; text-decoration:underline;">${inq.website}</a>`;
+  } else {
+    webEl.textContent = 'None provided';
+  }
+
+  const cleanPhone = String(inq.phone || '').replace(/\D/g, '');
+  document.getElementById('inqModalContactName').textContent = `${inq.contact_name} (${inq.phone}) • ${inq.email || ''}`;
+  
+  const waBtn = document.getElementById('inqModalWAButton');
+  const waGreeting = encodeURIComponent(`Hello ${inq.contact_name}! This is Chatly Platform Administration regarding your inquiry for "${inq.product_name}".`);
+  waBtn.href = `https://wa.me/${cleanPhone}?text=${waGreeting}`;
+
+  document.getElementById('inquiryDetailModal').style.display = 'flex';
+}
+
+function closeInquiryDetailModal() {
+  document.getElementById('inquiryDetailModal').style.display = 'none';
+}
+
+function convertInquiryToCompany(id) {
+  const inq = currentBrandInquiries.find(i => i.id === id);
+  if (!inq) return;
+
+  switchSadminTab('provision');
+  const nameInp = document.getElementById('provName');
+  const slugInp = document.getElementById('provSlug');
+  const ownerNameInp = document.getElementById('provOwnerName');
+  const emailInp = document.getElementById('provOwnerEmail');
+  const phoneInp = document.getElementById('provFallbackPhone');
+
+  if (nameInp) nameInp.value = inq.brand_name;
+  if (slugInp) {
+    slugInp.value = inq.brand_name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (typeof checkSlugAvailability === 'function') checkSlugAvailability();
+  }
+  if (ownerNameInp) ownerNameInp.value = inq.contact_name;
+  if (emailInp && inq.email) emailInp.value = inq.email;
+  if (phoneInp && inq.phone) phoneInp.value = inq.phone;
+
+  // Update status of inquiry to 'converted'
+  updateInquiryStatus(id, 'converted');
+
+  const provPane = document.getElementById('paneProvision');
+  if (provPane) {
+    window.scrollTo({ top: provPane.offsetTop - 50, behavior: 'smooth' });
+  }
+}
+
+async function updateInquiryStatus(id, newStatus) {
+  try {
+    const res = await fetch('api/brand_inquiries.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'update_status',
+        id: id,
+        status: newStatus
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadBrandInquiries();
+    } else {
+      alert('⚠️ ' + (data.error || 'Failed to update status.'));
+    }
+  } catch (err) {
+    console.error('Error updating inquiry status:', err);
+  }
+}
+
+async function markAllBrandInquiriesRead() {
+  try {
+    const res = await fetch('api/brand_inquiries.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'mark_all_read' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadBrandInquiries();
+    }
+  } catch (err) {}
+}
+
+async function deleteInquiry(id) {
+  if (!confirm('Are you sure you want to delete this brand promotion inquiry?')) return;
+  try {
+    const res = await fetch('api/brand_inquiries.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'delete', id: id })
+    });
+    const data = await res.json();
+    if (data.success) {
+      loadBrandInquiries();
+    } else {
+      alert('⚠️ ' + (data.error || 'Failed to delete inquiry.'));
+    }
+  } catch (err) {
+    alert('Error deleting inquiry.');
+  }
+}
+
+// Notification System: Audio chime + Floating toast
+function playNotificationChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (_) {}
+}
+
+function triggerNewInquiryNotification(diff, newestInq) {
+  playNotificationChime();
+  const toast = document.getElementById('sadminNotificationToast');
+  const title = document.getElementById('toastTitle');
+  const msg = document.getElementById('toastMsg');
+  if (toast && newestInq) {
+    if (title) title.textContent = `🔔 New Brand Promotion Request!`;
+    if (msg) msg.textContent = `"${newestInq.brand_name}" submitted product "${newestInq.product_name}". Click to review!`;
+    toast.style.display = 'block';
+    setTimeout(() => {
+      closeSadminToast();
+    }, 7000);
+  }
+}
+
+function closeSadminToast() {
+  const toast = document.getElementById('sadminNotificationToast');
+  if (toast) toast.style.display = 'none';
+}
+
+// ==========================================
+// 8. NUNNO PURE COMMISSION SETTLEMENT LEDGER
+// ==========================================
+let nunnoSettlementData = null;
+
+async function loadNunnoSettlement() {
+  try {
+    const res = await fetch('api/companies.php?action=get_nunno_settlement');
+    const data = await res.json();
+    if (!data.success) return;
+    nunnoSettlementData = data;
+    renderNunnoSettlement(data);
+  } catch (err) {
+    console.error('Error loading Nunno settlement:', err);
+  }
+}
+
+function renderNunnoSettlement(data) {
+  const s = data.summary || {};
+  const closers = data.closers || [];
+
+  const revEl = document.getElementById('nunnoConfirmedRev');
+  const revSubEl = document.getElementById('nunnoConfirmedRevSub');
+  const payableEl = document.getElementById('nunnoPayableToChatly');
+  const profitEl = document.getElementById('nunnoRetainedProfit');
+  const profitSubEl = document.getElementById('nunnoRetainedProfitSub');
+  const tmsEl = document.getElementById('nunnoActiveTMs');
+
+  if (revEl) revEl.textContent = 'Rs. ' + Number(s.total_confirmed_revenue || 0).toLocaleString();
+  if (revSubEl) revSubEl.textContent = `${Number(s.total_plans_sold || 0).toLocaleString()} verified sales`;
+  const paySub = document.getElementById('nunnoPayoutsSub');
+  if (paySub) paySub.textContent = `Payouts: Rs. ${Number(s.total_paid_out || 0).toLocaleString()} paid · Rs. ${Number(s.total_pending_payouts || 0).toLocaleString()} pending`;
+  
+  if (payableEl) payableEl.textContent = 'Rs. ' + Number(s.total_payable_by_nunno || 0).toLocaleString();
+  
+  if (profitEl) profitEl.textContent = 'Rs. ' + Number(s.total_nunno_profit || 0).toLocaleString();
+  if (profitSubEl) profitSubEl.textContent = `Sales minus what closers earned`;
+
+  if (tmsEl) tmsEl.textContent = `${s.total_tms || closers.length} Closers`;
+
+  // Render Table Rows
+  const tbody = document.getElementById('tableNunnoSettlementBody');
+  if (!tbody) return;
+
+  if (closers.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">No closers currently assigned to Nunno.</td></tr>`;
+    return;
+  }
+
+  const rs = n => 'Rs. ' + Number(n || 0).toLocaleString();
+  tbody.innerHTML = closers.map(c => {
+    const prog = Number(c.full_pay_progress || 0);
+    const pct = Math.min(100, Math.round(prog / 100));
+    const progCell = prog >= 10000
+      ? `<span style="display:inline-flex; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3);">✅ Done · now on plan commission</span>`
+      : `<div style="font-size:11.5px; color:#fde047; font-weight:700;">${rs(prog)} / Rs. 10,000</div>
+         <div style="height:6px; width:140px; background:rgba(255,255,255,0.08); border-radius:99px; margin-top:4px; overflow:hidden;"><div style="height:100%; width:${pct}%; background:linear-gradient(90deg,#fbbf24,#10b981);"></div></div>`;
+    return `
+      <tr>
+        <td>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px;">
+              ${escapeHtml((c.name || 'TM').charAt(0).toUpperCase())}
+            </div>
+            <div>
+              <div style="font-weight:700; color:var(--text-primary); font-size:13px;">${escapeHtml(c.name || 'Closer')}</div>
+              <div style="font-size:11px; color:var(--text-muted); display:flex; gap:6px;">
+                <span>@${escapeHtml(c.username || '')}</span>
+                ${c.phone ? `<span>· ${escapeHtml(c.phone)}</span>` : ''}
+              </div>
+            </div>
+          </div>
+        </td>
+        <td style="font-weight:800; font-size:14px; color:var(--text-primary);">
+          <span style="display:inline-block; padding:3px 10px; border-radius:6px; background:rgba(255,255,255,0.06); border:1px solid var(--border-subtle);">${Number(c.deals || 0)}</span>
+          ${c.in_review_count ? `<div style="font-size:10.5px; color:#94a3b8; margin-top:3px;">+${c.in_review_count} in review</div>` : ''}
+        </td>
+        <td style="font-weight:700; color:#34d399;">${rs(c.gross_revenue)}</td>
+        <td>${progCell}</td>
+        <td style="font-weight:800; font-size:14px; color:#10b981;">${rs(c.amount_payable_by_nunno)}</td>
+        <td style="font-weight:700; color:#fbbf24;">${rs(c.nunno_retained_profit)}</td>
+        <td style="font-size:11.5px; line-height:1.6;">
+          <div style="color:#34d399;">Paid ${rs(c.paid_out)}</div>
+          <div style="color:#fbbf24;">Pending ${rs(c.pending_withdrawals)}</div>
+          <div style="color:var(--text-secondary);">Available ${rs(c.available)}</div>
+        </td>
+        <td>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px; border-color:rgba(16, 185, 129, 0.4); color:#34d399;" onclick="quickAddNunnoSale('${escapeHtml(c.id)}', '${escapeHtml(c.name || '')}')">+ Sale</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function quickAddNunnoSale(userId, name) {
+  const pick = prompt(`Record a verified sale for ${name}.\nWhich plan? Type 1700, 5000 or 15000:`, '1700');
+  if (pick === null) return;
+  const price = parseInt(pick.replace(/[^0-9]/g, ''), 10);
+  if (![1700, 5000, 15000].includes(price)) { alert('Please type 1700, 5000 or 15000.'); return; }
+  try {
+    const res = await fetch('api/companies.php?action=record_nunno_sale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, plans: 1, plan_price: price })
+    });
+    const d = await res.json();
+    if (d.success) loadNunnoSettlement();
+    else alert('⚠️ ' + (d.error || 'Failed to record sale.'));
+  } catch (e) {
+    alert('Error recording sale.');
+  }
+}
+
+function openRecordNunnoSaleModal() {
+  const select = document.getElementById('recordNunnoSaleTMSelect');
+  if (select && nunnoSettlementData && nunnoSettlementData.closers) {
+    select.innerHTML = nunnoSettlementData.closers.map(c => `
+      <option value="${escapeHtml(c.id)}">${escapeHtml(c.name)} (@${escapeHtml(c.username || '')}) · ${Number(c.deals || 0)} sales</option>
+    `).join('');
+  }
+  document.getElementById('recordNunnoSaleModal').style.display = 'flex';
+}
+
+function closeRecordNunnoSaleModal() {
+  document.getElementById('recordNunnoSaleModal').style.display = 'none';
+}
+
+async function submitRecordNunnoSale(e) {
+  if (e) e.preventDefault();
+  const select = document.getElementById('recordNunnoSaleTMSelect');
+  const userId = select ? select.value : '';
+  const plans = parseInt(document.getElementById('recordNunnoSalePlansInput').value, 10) || 1;
+  if (!userId) {
+    alert('Please select a closer.');
+    return;
+  }
+  try {
+    const res = await fetch('api/companies.php?action=record_nunno_sale', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, plans: plans, plan_price: parseInt(document.getElementById('recordNunnoSalePriceSelect').value, 10) || 1700 })
+    });
+    const d = await res.json();
+    if (d.success) {
+      closeRecordNunnoSaleModal();
+      loadNunnoSettlement();
+    } else {
+      alert('⚠️ ' + (d.error || 'Failed to record sale.'));
+    }
+  } catch (err) {
+    alert('Error recording sale.');
+  }
+}
+
+// Initial Boot
+
+function enterCommandCenterDirect() {
+  const gate = document.getElementById('sadminAuthGate');
+  const cc = document.getElementById('sadminCommandCenter');
+  if (gate) gate.style.display = 'none';
+  if (cc) cc.style.display = 'block';
+  bootSuperAdminDashboard();
+}
+
+function bootSuperAdminDashboard() {
+  loadDashboardData();
+  loadMasterPendingTMs();
+  loadBrandInquiries();
+  loadNunnoSettlement();
+  if (!window._sadminBooted) {
+    window._sadminBooted = true;
+    setInterval(loadDashboardData, 8000);
+    setInterval(loadMasterPendingTMs, 8000);
+    setInterval(loadBrandInquiries, 8000);
+    setInterval(loadNunnoSettlement, 10000);
+  }
+}
+
+async function checkSadminAuth() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isPortalParam = urlParams.get('portal') === '1' || urlParams.get('dashboard') === '1';
+  const isSwitch = urlParams.get('switch') === '1' || urlParams.get('login') === '1';
+
+  try {
+    const res = await fetch('api/auth.php?action=check');
+    const data = await res.json();
+    const u = data?.user || JSON.parse(localStorage.getItem('omnidesk_user') || 'null');
+    
+    if (u && (u.role === 'superadmin' || u.role === 'admin') && !isSwitch) {
+      if (isPortalParam || u.role === 'superadmin') {
+        enterCommandCenterDirect();
+        return;
+      }
+      const box = document.getElementById('sadminActiveSessionBox');
+      const nameEl = document.getElementById('sadminActiveSessionName');
+      if (box) box.style.display = 'block';
+      if (nameEl) nameEl.textContent = u.name || u.username || 'Super Admin';
+    }
+  } catch (_) {}
+
+  const gate = document.getElementById('sadminAuthGate');
+  const cc = document.getElementById('sadminCommandCenter');
+  if (gate) gate.style.display = 'flex';
+  if (cc) cc.style.display = 'none';
+}
+
+window.addEventListener('DOMContentLoaded', checkSadminAuth);
+
+
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('theme-light');
+  try { localStorage.setItem('nunno_theme', isLight ? 'light' : 'dark'); } catch(_) {}
+}
+</script>
+</body>
+</html>
